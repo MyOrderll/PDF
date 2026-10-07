@@ -1,58 +1,2252 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>StudyMatch</title>
-    <meta
-      name="description"
-      content="StudyMatch - study buddy مناسب ليك: جروبات + جدول ذكي + Timer + Leaderboard."
-    />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع تعديل الصور</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&family=Amiri:wght@400;700&family=Cairo:wght@400;700&family=Changa:wght@400;700&family=El+Messiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;700&family=Montserrat:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Playfair+Display:wght@400;700&family=Roboto+Slab:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- مكتبة Tailwind للتصميم السريع -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة Fabric.js للتعامل مع الصور والرسم -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <style>
-      /* Redirect helper styling for standalone index. */
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        font-family: -apple-system, "Segoe UI", sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f5f4f0;
-        color: #1a1a1a;
-      }
-      iframe {
-        border: 0;
-        width: 100%;
-        height: 100%;
-      }
-      .fallback {
-        max-width: 520px;
-        padding: 18px;
-        text-align: center;
-        line-height: 1.7;
-      }
-      .link {
-        display: inline-block;
-        margin-top: 12px;
-        padding: 10px 14px;
-        border-radius: 10px;
-        background: #534ab7;
-        color: #fff;
-        text-decoration: none;
-        font-weight: 600;
-      }
+        :root {
+            color-scheme: light;
+            --page: #f1f5f3;
+            --surface: #ffffff;
+            --surface-muted: #f5f8f7;
+            --ink: #19363a;
+            --muted: #6f8382;
+            --line: #d9e4e0;
+            --brand: #087f72;
+            --brand-hover: #06675e;
+            --accent: #c56c48;
+            --stage: #e9f0ed;
+            --shadow: 0 14px 38px rgba(23, 51, 55, 0.09);
+        }
+
+        html.dark {
+            color-scheme: dark;
+            --page: #121d20;
+            --surface: #1a292c;
+            --surface-muted: #203236;
+            --ink: #e7efed;
+            --muted: #a1b1b2;
+            --line: #34484b;
+            --brand: #42b7a5;
+            --brand-hover: #55c8b6;
+            --accent: #ee9a68;
+            --stage: #152326;
+            --shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page);
+            color: var(--ink);
+            font-family: 'Cairo', 'Tahoma', sans-serif;
+            transition: background 180ms ease, color 180ms ease;
+        }
+
+        button, select, input { font: inherit; }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            min-height: 72px;
+            padding: 12px clamp(18px, 4vw, 56px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: rgba(23, 53, 58, 0.97);
+            color: #f4f8f7;
+            border-bottom: 2px solid #159786;
+            box-shadow: 0 4px 18px rgba(20, 46, 49, 0.14);
+            backdrop-filter: blur(12px);
+        }
+
+        .brand, .header-actions { display: flex; align-items: center; gap: 12px; }
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 7px;
+            background: #087f72;
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            font-size: 21px;
+            font-weight: 700;
+        }
+        #titleText { margin: 0; font-size: 19px; font-weight: 700; }
+        .header-actions { gap: 8px; }
+        .utility-btn {
+            min-height: 38px;
+            padding: 7px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 5px;
+            background: transparent;
+            color: #f4f8f7;
+            cursor: pointer;
+        }
+        .utility-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .history-controls {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 6px;
+        }
+        .history-btn {
+            width: 34px;
+            min-height: 34px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 22px;
+            line-height: 1;
+        }
+        .history-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+        .history-btn:not(:disabled):hover { background: rgba(255, 255, 255, 0.14); }
+        .history-btn:focus-visible { outline: 2px solid #69d6c5; outline-offset: 2px; }
+        .mode-menu { position: relative; }
+        .mode-menu > summary { display: flex; align-items: center; gap: 8px; list-style: none; }
+        .mode-menu > summary::-webkit-details-marker { display: none; }
+        .mode-menu > summary::after { content: '▾'; font-size: 12px; }
+        .mode-menu-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            inset-inline-start: 0;
+            z-index: 20;
+            min-width: 190px;
+            padding: 7px;
+            display: grid;
+            gap: 5px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            box-shadow: var(--shadow);
+        }
+        .mode-menu-panel button {
+            min-height: 38px;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--ink);
+            text-align: start;
+            cursor: pointer;
+        }
+        .mode-menu-panel button:hover:not(:disabled) { background: var(--surface-muted); color: var(--brand); }
+        .mode-menu-panel button:disabled { color: var(--muted); cursor: not-allowed; opacity: 0.6; }
+        .mode-menu-panel .menu-divider { height: 1px; margin: 2px 0; background: var(--line); }
+        #modeMenu .mode-menu-panel button {
+            min-height: 38px;
+            width: 100%;
+            padding: 7px 10px;
+            display: block;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            box-shadow: none;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: start;
+            transform: none;
+        }
+        #modeMenu .mode-menu-panel button:hover:not(:disabled) { background: var(--surface-muted); color: var(--brand); box-shadow: none; }
+
+        .editor-layout {
+            width: min(100%, 1760px);
+            min-height: calc(100vh - 72px);
+            margin: 0 auto;
+            padding: 20px clamp(14px, 2vw, 30px) 28px;
+            display: grid;
+            grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .tools-panel {
+            position: sticky;
+            top: 92px;
+            max-height: calc(100vh - 112px);
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            scrollbar-width: thin;
+            scrollbar-color: #bbcfca transparent;
+        }
+        .panel-heading { padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+        .panel-eyebrow {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--brand);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            direction: ltr;
+            text-align: right;
+        }
+        #toolsTitle { margin: 0; font-size: 19px; font-weight: 700; }
+        .section-label { margin: 0; color: var(--muted); font-size: 12px; font-weight: 700; }
+        .tool-divider { height: 1px; background: var(--line); }
+        #addPageBtn {
+            min-height: 43px;
+            width: 100%;
+            padding: 9px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            border: 1px solid #c9ded9;
+            border-radius: 5px;
+            background: #e9f4f1;
+            color: #17685f;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 140ms ease, transform 140ms ease;
+        }
+        #addPageBtn:hover { background: #dcece8; transform: translateY(-1px); }
+        html.dark #addPageBtn { border-color: #456b65; background: #24413d; color: #a9e0d5; }
+        html.dark #addPageBtn:hover { background: #2b4d47; }
+        .upload-control, #recognizeTextBtn, #drawBtn, #rectangleEraseBtn, #addTextBtn, #editTextBtn, #replaceTextBtn,
+        #increaseFontBtn, #decreaseFontBtn, #downloadBtn {
+            min-height: 43px;
+            width: 100%;
+            padding: 9px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+        }
+        .upload-control:hover, #recognizeTextBtn:hover, #drawBtn:hover, #rectangleEraseBtn:hover, #addTextBtn:hover,
+        #editTextBtn:hover, #replaceTextBtn:hover, #increaseFontBtn:hover, #decreaseFontBtn:hover, #downloadBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(20, 48, 50, 0.12);
+        }
+        .upload-control { position: relative; background: var(--brand); }
+        .upload-control::before { content: '+'; font-size: 20px; font-weight: 400; line-height: 1; }
+        .upload-control:hover { background: var(--brand-hover); }
+        .upload-control input { display: none; }
+        #recognizeTextBtn {
+            min-height: 46px;
+            background: #267d83;
+            box-shadow: 0 3px 8px rgba(38, 125, 131, 0.16);
+        }
+        #recognizeTextBtn:hover { background: #206a70; box-shadow: 0 5px 12px rgba(38, 125, 131, 0.22); }
+        #recognizeTextBtn:disabled { opacity: 0.65; cursor: wait; transform: none; }
+        #drawBtn { background: #b46b28; }
+        #drawBtn:hover { background: #96551f; }
+        #drawBtn.is-active { background: #a64740; }
+        #rectangleEraseBtn { background: #416f9e; }
+        #rectangleEraseBtn:hover { background: #345c84; }
+        #rectangleEraseBtn.is-active { background: #a64740; }
+        #addTextBtn { background: #32815d; }
+        #addTextBtn:hover { background: #28694b; }
+        #editTextBtn { background: #416f9e; }
+        #editTextBtn:hover { background: #345c84; }
+        #replaceTextBtn { background: #267d83; }
+        #replaceTextBtn:hover { background: #206a70; }
+        #replaceTextBtn.hidden { display: none; }
+        #increaseFontBtn { background: #087f72; }
+        #decreaseFontBtn { background: #58777a; }
+        #downloadBtn { margin-top: 3px; background: #b75a45; }
+        #downloadBtn:hover { background: #984837; }
+        #fontFamilyLabel, #colorLabel, #sizeLabel { color: var(--muted); font-size: 12px; font-weight: 700; }
+        #fontFamilySelect {
+            min-height: 42px;
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: var(--surface-muted);
+            color: var(--ink);
+            outline: none;
+        }
+        #fontFamilySelect:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(8, 127, 114, 0.12); }
+
+        #brushSettings { gap: 8px; }
+        #brushSettings input[type="color"] { height: 38px; border: 1px solid var(--line); border-radius: 5px; }
+        .hex-color-input {
+            min-height: 38px;
+            width: 100%;
+            padding: 7px 9px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: var(--surface-muted);
+            color: var(--ink);
+            direction: ltr;
+            text-align: left;
+        }
+        .hex-color-input:focus { border-color: var(--brand); outline: 2px solid rgba(8, 127, 114, 0.12); }
+        #brushSettings input[type="range"] { accent-color: var(--brand); }
+        #ocrStatus, #editTextHint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+        #ocrStatus {
+            padding: 10px 12px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            background: var(--surface-muted);
+        }
+        #ocrStatus:not(:empty) {
+            border-color: rgba(38, 125, 131, 0.18);
+            border-inline-start: 3px solid var(--brand);
+            color: var(--ink);
+        }
+        #ocrStatus:empty { display: none; }
+        #recognizeTextBtn:focus-visible, .upload-control:focus-visible, #drawBtn:focus-visible, #replaceTextBtn:focus-visible,
+        #rectangleEraseBtn:focus-visible, #addTextBtn:focus-visible, #editTextBtn:focus-visible {
+            outline: 3px solid rgba(38, 125, 131, 0.3);
+            outline-offset: 2px;
+        }
+        .size-controls { display: flex; gap: 8px; }
+        .text-properties { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+        .text-properties.hidden { display: none; }
+        .text-color-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        #textColorLabel { color: var(--muted); font-size: 12px; font-weight: 700; }
+        #textColorInput { width: 54px; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer; }
+        .text-hex-color-input { width: 104px; }
+        #sampleTextColorBtn {
+            min-height: 38px;
+            padding: 7px 10px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: var(--surface-muted);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #sampleTextColorBtn:hover, #sampleTextColorBtn.is-active { border-color: var(--brand); color: var(--brand); background: rgba(8, 127, 114, 0.08); }
+        #textPropertyStatus { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+        #textPropertyStatus.hidden { display: none; }
+
+        .workspace {
+            min-width: 0;
+            min-height: calc(100vh - 112px);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 12px;
+            overflow: auto;
+            background-color: var(--stage);
+            background-image: radial-gradient(rgba(72, 101, 99, 0.15) 0.7px, transparent 0.7px);
+            background-size: 18px 18px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+        }
+        html.dark .workspace { background-image: radial-gradient(rgba(172, 201, 195, 0.11) 0.7px, transparent 0.7px); }
+        .canvas-container { margin: 0 auto; border: 1px solid rgba(40, 65, 66, 0.2); border-radius: 3px; background: #fff; box-shadow: 0 18px 48px rgba(23, 51, 55, 0.18), 0 2px 6px rgba(23, 51, 55, 0.08); }
+        .page-tabs {
+            order: 2;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            overflow-x: auto;
+            border-top: 1px solid var(--line);
+        }
+        .page-tab {
+            min-height: 34px;
+            padding: 6px 13px;
+            border: 1px solid transparent;
+            border-radius: 5px 5px 0 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .page-tab:hover { background: var(--surface); color: var(--ink); }
+        .page-tab.is-current { border-color: var(--line); border-bottom-color: var(--surface); background: var(--surface); color: var(--brand); }
+        .canvas-stage {
+            position: relative;
+            order: 1;
+            min-width: 0;
+            min-height: calc(100vh - 170px);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+        .empty-state {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            pointer-events: none;
+            text-align: center;
+        }
+        .empty-state.hidden { display: none; }
+        .empty-state-mark {
+            width: 62px;
+            height: 62px;
+            display: grid;
+            place-items: center;
+            border: 1px solid #c9ddd7;
+            border-radius: 17px;
+            background: rgba(255, 255, 255, 0.82);
+            color: var(--brand);
+            font-family: Arial, sans-serif;
+            font-size: 31px;
+            box-shadow: 0 8px 22px rgba(30, 83, 75, 0.08);
+        }
+        .empty-state h2 { margin: 0; color: var(--ink); font-size: 20px; font-weight: 700; }
+        #emptyUploadBtn {
+            min-height: 42px;
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid var(--brand);
+            border-radius: 5px;
+            background: var(--brand);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+        }
+        #emptyUploadBtn:hover { background: var(--brand-hover); transform: translateY(-1px); box-shadow: 0 5px 14px rgba(8, 127, 114, 0.2); }
+        #emptyUploadBtn:focus-visible { outline: 3px solid rgba(8, 127, 114, 0.28); outline-offset: 3px; }
+
+        @media (max-width: 800px) {
+            .app-header { min-height: 66px; padding: 10px 14px; }
+            .brand-mark { width: 35px; height: 35px; }
+            #titleText { font-size: 16px; }
+            .utility-btn { min-height: 35px; padding: 6px 9px; font-size: 12px; }
+            .history-btn { width: 32px; min-height: 32px; padding: 0; }
+            .editor-layout { min-height: auto; padding: 12px; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+            .tools-panel { position: static; order: 1; max-height: none; padding: 17px; gap: 12px; }
+            .workspace { order: 2; min-height: 58vh; padding: 10px; }
+            .canvas-stage { min-height: calc(58vh - 58px); }
+        }
+
+        @media (max-width: 420px) {
+            .app-header { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+            .brand { gap: 8px; }
+            .brand-mark { width: 32px; height: 32px; font-size: 17px; }
+            #titleText { max-width: 150px; font-size: 14px; line-height: 1.5; }
+            .header-actions { width: 100%; justify-content: flex-start; gap: 5px; }
+            .utility-btn { padding: 5px 7px; font-size: 11px; }
+            .workspace { min-height: 50vh; }
+            .canvas-stage { min-height: calc(50vh - 58px); }
+            .empty-state-mark { width: 54px; height: 54px; font-size: 27px; }
+            .empty-state h2 { font-size: 17px; }
+        }
     </style>
-  </head>
-  <body>
-    <iframe src="./study_match.html" title="StudyMatch"></iframe>
-    <div class="fallback" style="display: none">
-      <div>
-        لو الـ iframe ما اشتغلش عندك:
-        <a class="link" href="./study_match.html">افتح study_match.html</a>
-      </div>
-    </div>
-  </body>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">م</span>
+            <h1 id="titleText">محرر الصور الذكي</h1>
+        </div>
+        <div class="header-actions">
+            <div id="historyControls" class="history-controls" role="group" aria-label="سجل التعديلات">
+                <button id="undoBtn" class="utility-btn history-btn" type="button" title="تراجع (Ctrl+Z)" aria-label="تراجع (Ctrl+Z)" aria-keyshortcuts="Control+Z Meta+Z" disabled>↶</button>
+                <button id="redoBtn" class="utility-btn history-btn" type="button" title="إعادة (Ctrl+Y)" aria-label="إعادة (Ctrl+Y)" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" disabled>↷</button>
+            </div>
+            <details id="modeMenu" class="mode-menu">
+                <summary id="modeMenuLabel" class="utility-btn">الملفات</summary>
+                <div class="mode-menu-panel">
+                    <button id="imageModeBtn" type="button">تعديل الصور</button>
+                    <button id="uploadImageBtn" type="button">رفع صورة</button>
+                    <button id="pdfModeBtn" type="button">رفع / تعديل PDF</button>
+                    <button id="recognizePdfBtn" type="button" disabled>اكتشاف نصوص وأرقام PDF</button>
+                    <div class="menu-divider" aria-hidden="true"></div>
+                    <button id="addPageBtn" type="button">إضافة صفحة جديدة</button>
+                    <button id="downloadBtn" type="button">تنزيل الصورة</button>
+                    <button id="downloadPdfBtn" type="button">تحميل PDF</button>
+                </div>
+            </details>
+            <button id="themeBtn" class="utility-btn">🌙 Dark</button>
+            <button id="langBtn" class="utility-btn">English</button>
+        </div>
+    </header>
+
+    <input type="file" id="imageUpload" class="hidden" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+    <input type="file" id="pdfUpload" class="hidden" accept="application/pdf,.pdf">
+
+    <main class="editor-layout">
+        <aside class="tools-panel">
+            <div class="panel-heading">
+                <span id="panelEyebrow" class="panel-eyebrow">IMAGE WORKSPACE</span>
+                <h2 id="toolsTitle">الأدوات</h2>
+            </div>
+            <p id="imageSectionTitle" class="section-label">أدوات الذكاء الاصطناعي</p>
+            <button id="recognizeTextBtn">اكتشاف النصوص</button>
+            <p id="ocrStatus" role="status"></p>
+
+            <div class="tool-divider"></div>
+
+            <p id="cleanupSectionTitle" class="section-label">الطمس اليدوي</p>
+            <button id="drawBtn">وضع الطمس/الرسم</button>
+            <button id="rectangleEraseBtn" type="button">مسح بمستطيل</button>
+            <div id="brushSettings" class="hidden flex-col gap-2">
+                <label id="colorLabel" for="brushColor">لون الفرشاة:</label>
+                <input type="color" id="brushColor" value="#ffffff" class="w-full">
+                <label id="brushColorCodeLabel" for="brushColorHex">كود اللون:</label>
+                <input type="text" id="brushColorHex" class="hex-color-input" value="#ffffff" maxlength="7" autocomplete="off" spellcheck="false" aria-label="كود لون الفرشاة">
+                <label id="sizeLabel" for="brushSize">حجم الفرشاة:</label>
+                <input type="range" id="brushSize" min="5" max="50" value="20" class="w-full">
+            </div>
+
+            <div class="tool-divider"></div>
+
+            <p id="textSectionTitle" class="section-label">أدوات النص</p>
+            <button id="addTextBtn">إضافة نص جديد</button>
+            <button id="editTextBtn">تعديل النص</button>
+            <button id="replaceTextBtn" class="hidden" type="button">استبدال النص المحدد</button>
+            <div id="textProperties" class="text-properties hidden">
+                <label id="fontFamilyLabel" for="fontFamilySelect">نوع الخط:</label>
+                <select id="fontFamilySelect">
+                    <optgroup id="arabicFontsGroup" label="خطوط عربية">
+                        <option value="Arial">Arial</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Traditional Arabic">Traditional Arabic</option>
+                        <option value="Simplified Arabic">Simplified Arabic</option>
+                        <option value="Cairo">Cairo</option>
+                        <option value="Tajawal">Tajawal</option>
+                        <option value="Amiri">Amiri</option>
+                        <option value="Almarai">Almarai</option>
+                        <option value="Changa">Changa</option>
+                        <option value="El Messiri">El Messiri</option>
+                        <option value="IBM Plex Sans Arabic">IBM Plex Sans Arabic</option>
+                        <option value="Noto Naskh Arabic">Noto Naskh Arabic</option>
+                    </optgroup>
+                    <optgroup id="latinFontsGroup" label="خطوط لاتينية">
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Roboto Slab">Roboto Slab</option>
+                    </optgroup>
+                </select>
+                <div class="size-controls">
+                    <button id="increaseFontBtn">تكبير الخط</button>
+                    <button id="decreaseFontBtn">تصغير الخط</button>
+                </div>
+                <div class="text-color-row">
+                    <label id="textColorLabel" for="textColorInput">لون النص:</label>
+                    <input type="color" id="textColorInput" value="#183238">
+                    <input type="text" id="textColorHex" class="hex-color-input text-hex-color-input" value="#183238" maxlength="7" autocomplete="off" spellcheck="false" aria-label="كود لون النص">
+                </div>
+                <button id="sampleTextColorBtn" type="button">التقاط لون من الصورة</button>
+                <p id="textPropertyStatus" class="hidden" role="status"></p>
+            </div>
+            <p id="editTextHint" class="hidden" role="status"></p>
+        </aside>
+
+        <section id="workspace" class="workspace" aria-label="مساحة تعديل الصورة">
+            <nav id="pageTabs" class="page-tabs" role="tablist" aria-label="صفحات العمل"></nav>
+            <div id="canvasStage" class="canvas-stage">
+                <div id="emptyState" class="empty-state" aria-live="polite">
+                    <span class="empty-state-mark" aria-hidden="true">+</span>
+                    <h2 id="emptyTitle">ابدأ بصورة جديدة</h2>
+                    <button id="emptyUploadBtn" type="button"><span aria-hidden="true">↑</span><span id="emptyUploadLabel">رفع صورة</span></button>
+                </div>
+                <canvas id="canvas"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // إعدادات المتغيرات الأساسية
+        let canvas;
+        let isArabic = true;
+        let isTextEditArmed = false;
+        let currentImageData = null;
+        let imageScale = 1;
+        let tesseractPromise = null;
+        let ocrWords = [];
+        let ocrObjects = [];
+        let ocrSourceCanvas = null;
+        let ocrSourceContext = null;
+        let pages = [];
+        let activePageIndex = 0;
+        let rectangleInProgress = null;
+        let isRectMaskMode = false;
+        let imageWorkspaceState = null;
+        let pdfWorkspaceState = null;
+        let activeWorkspaceMode = 'image';
+        let pdfLibraryPromise = null;
+        let jsPdfLibraryPromise = null;
+        let pdfFileName = 'edited-document';
+        let isPickingTextColor = false;
+        let textColorTarget = null;
+        let canvasTouchStart = null;
+        let lastCanvasTouchAt = 0;
+        
+        // الترجمة
+        const translations = {
+            ar: {
+                title: "محرر الصور الذكي",
+                tools: "الأدوات",
+                panelEyebrow: "مساحة العمل",
+                imageSection: "أدوات الذكاء الاصطناعي",
+                cleanupSection: "الطمس اليدوي",
+                textSection: "أدوات النص",
+                workspace: "مساحة تعديل الصورة",
+                arabicFonts: "خطوط عربية",
+                latinFonts: "خطوط لاتينية",
+                modeMenu: "الملفات",
+                imageMode: "تعديل الصور",
+                uploadPdf: "رفع / تعديل PDF",
+                uploadImage: "رفع صورة",
+                pdfMode: "تعديل PDF",
+                downloadPdf: "تحميل PDF",
+                recognizePdfText: "اكتشاف نصوص وأرقام PDF",
+                pdfLoading: "جارٍ تجهيز ملف PDF...",
+                pdfPageProgress: "جارٍ تجهيز صفحة PDF ",
+                pdfRenderTimeout: "استغرق تجهيز إحدى صفحات PDF وقتًا طويلًا. جرّب تقسيم الملف أو استخدام نسخة أصغر.",
+                pdfLoadError: "تعذر فتح PDF. تأكد من صحة الملف وحاول مرة أخرى.",
+                pdfDownloadError: "تعذر إنشاء ملف PDF.",
+                addPage: "إضافة صفحة جديدة",
+                page: "صفحة",
+                pages: "صفحات العمل",
+                upload: "رفع صورة",
+                recognizeText: "اكتشاف النصوص",
+                ocrNoImage: "ارفع صورة أولًا.",
+                ocrLoading: "جارٍ تحميل أداة التعرّف...",
+                ocrProgress: "جارٍ التعرّف على النص: ",
+                ocrNone: "لم يتم العثور على نص واضح.",
+                ocrFound: "تم اكتشاف النصوص والأرقام. ضغطة لتحديد كلمة، وضغطتان لتحديد العبارة.",
+                ocrError: "تعذر التعرّف على النص. تحقق من اتصال الإنترنت وحاول مرة أخرى.",
+                draw: "وضع الطمس والرسم",
+                drawActive: "إيقاف الرسم",
+                rectangleErase: "مسح بمستطيل",
+                rectangleEraseActive: "إيقاف المسح بالمستطيل",
+                color: "لون الفرشاة:",
+                colorCode: "كود اللون:",
+                size: "حجم الفرشاة:",
+                addText: "إضافة نص جديد",
+                editText: "تعديل النص",
+                replaceDetectedText: "استبدال النص المحدد",
+                fontFamily: "نوع الخط:",
+                increaseFont: "تكبير الخط",
+                decreaseFont: "تصغير الخط",
+                selectTextFirst: "حدد نصًا أو رقمًا أولًا لتغيير تنسيقه.",
+                textColor: "لون النص:",
+                sampleTextColor: "التقاط لون من الصورة",
+                sampleColorHint: "انقر على لون من الصورة لاستخدامه للنص المحدد.",
+                sampleColorError: "حدد نصًا أولًا واختر صورة أو صفحة PDF.",
+                editPrompt: "انقر مرة على النص",
+                editHint: "انقر مرة على كلمة مكتشفة أو مرتين لتحديد عبارتها وتعديلها. نص الصورة غير المكتشف لا يمكن تحديده.",
+                download: "تنزيل الصورة",
+                undo: "تراجع",
+                redo: "إعادة",
+                history: "سجل التعديلات",
+                emptyTitle: "ابدأ بصورة جديدة",
+                emptyUpload: "رفع صورة",
+                lang: "English",
+                newTextStr: "اكتب النص هنا"
+            },
+            en: {
+                title: "Smart Image Editor",
+                tools: "Tools",
+                panelEyebrow: "IMAGE WORKSPACE",
+                imageSection: "AI tools",
+                cleanupSection: "Manual masking",
+                textSection: "Text tools",
+                workspace: "Image editing workspace",
+                arabicFonts: "Arabic fonts",
+                latinFonts: "Latin fonts",
+                modeMenu: "Files",
+                imageMode: "Edit images",
+                uploadPdf: "Upload / edit PDF",
+                uploadImage: "Upload image",
+                pdfMode: "Edit PDF",
+                downloadPdf: "Download PDF",
+                recognizePdfText: "Detect PDF text and numbers",
+                pdfLoading: "Preparing PDF...",
+                pdfPageProgress: "Preparing PDF page ",
+                pdfRenderTimeout: "A PDF page took too long to prepare. Try splitting the file or using a smaller copy.",
+                pdfLoadError: "Could not open the PDF. Check the file and try again.",
+                pdfDownloadError: "Could not create the PDF.",
+                addPage: "Add new page",
+                page: "Page",
+                pages: "Workspace pages",
+                upload: "Upload image",
+                recognizeText: "Detect text",
+                ocrNoImage: "Upload an image first.",
+                ocrLoading: "Loading text recognition...",
+                ocrProgress: "Recognizing text: ",
+                ocrNone: "No readable text was found.",
+                ocrFound: "Text and numbers detected. Click once to select a word, or twice to select its phrase.",
+                ocrError: "Text recognition failed. Check your internet connection and try again.",
+                draw: "Draw and mask mode",
+                drawActive: "Stop drawing",
+                rectangleErase: "Rectangle eraser",
+                rectangleEraseActive: "Stop rectangle eraser",
+                color: "Brush Color:",
+                colorCode: "Color code:",
+                size: "Brush Size:",
+                addText: "Add new text",
+                editText: "Edit text",
+                replaceDetectedText: "Replace selected text",
+                fontFamily: "Font family:",
+                increaseFont: "Increase font size",
+                decreaseFont: "Decrease font size",
+                selectTextFirst: "Select a text or number to change its formatting.",
+                textColor: "Text color:",
+                sampleTextColor: "Pick color from image",
+                sampleColorHint: "Click a color in the image to apply it to the selected text.",
+                sampleColorError: "Select text and load an image or PDF page first.",
+                editPrompt: "Click a text object",
+                editHint: "Click a detected word once, or twice to select and edit its phrase. Unrecognized image text cannot be selected.",
+                download: "Download image",
+                undo: "Undo",
+                redo: "Redo",
+                history: "Edit history",
+                emptyTitle: "Start with an image",
+                emptyUpload: "Upload image",
+                lang: "عربي",
+                newTextStr: "Type your text here"
+            }
+        };
+
+        const maxHistoryStates = 30;
+        let historyCaptureTimer = null;
+        let isRestoringCanvas = false;
+
+        function captureCanvasHistoryState() {
+            const page = pages[activePageIndex];
+            if (!page || !canvas) return null;
+            return JSON.stringify({
+                canvas: canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']),
+                width: canvas.getWidth(),
+                height: canvas.getHeight(),
+                imageScale,
+                ocrWords: ocrWords.map(word => ({ ...word, bbox: { ...word.bbox } })),
+                rectangleMode: page.rectangleMode,
+                drawingMode: canvas.isDrawingMode
+            });
+        }
+
+        function updateHistoryButtons() {
+            const page = pages[activePageIndex];
+            const undoButton = document.getElementById('undoBtn');
+            const redoButton = document.getElementById('redoBtn');
+            if (!undoButton || !redoButton) return;
+            undoButton.disabled = !page || page.historyIndex <= 0;
+            redoButton.disabled = !page || page.historyIndex >= page.history.length - 1;
+        }
+
+        function storeCanvasHistoryState() {
+            if (isRestoringCanvas) return;
+            const page = pages[activePageIndex];
+            const snapshot = captureCanvasHistoryState();
+            if (!page || !snapshot) return;
+            if (!Array.isArray(page.history)) {
+                page.history = [];
+                page.historyIndex = -1;
+            }
+            if (page.history[page.historyIndex] === snapshot) return;
+
+            page.history.splice(page.historyIndex + 1);
+            page.history.push(snapshot);
+            if (page.history.length > maxHistoryStates) page.history.shift();
+            page.historyIndex = page.history.length - 1;
+            updateHistoryButtons();
+        }
+
+        function scheduleCanvasHistoryCapture() {
+            if (isRestoringCanvas) return;
+            clearTimeout(historyCaptureTimer);
+            historyCaptureTimer = setTimeout(() => {
+                historyCaptureTimer = null;
+                storeCanvasHistoryState();
+            }, 180);
+        }
+
+        function flushCanvasHistoryCapture() {
+            if (historyCaptureTimer === null) return;
+            clearTimeout(historyCaptureTimer);
+            historyCaptureTimer = null;
+            storeCanvasHistoryState();
+        }
+
+        function initializePageHistory(page) {
+            if (!Array.isArray(page.history) || !Number.isInteger(page.historyIndex)) {
+                page.history = [];
+                page.historyIndex = -1;
+            }
+            if (page.historyIndex < 0) storeCanvasHistoryState();
+            updateHistoryButtons();
+        }
+
+        function bindCanvasHistory() {
+            ['object:added', 'object:modified', 'object:removed', 'path:created', 'text:changed'].forEach(eventName => {
+                canvas.on(eventName, scheduleCanvasHistoryCapture);
+            });
+            document.getElementById('undoBtn').addEventListener('click', undoCanvasChange);
+            document.getElementById('redoBtn').addEventListener('click', redoCanvasChange);
+            document.addEventListener('keydown', handleHistoryShortcut, true);
+        }
+
+        function restoreCanvasHistoryState(snapshot) {
+            const page = pages[activePageIndex];
+            const state = JSON.parse(snapshot);
+            page.json = state.canvas;
+            page.width = state.width;
+            page.height = state.height;
+            page.imageData = state.canvas.backgroundImage?.src || null;
+            page.imageScale = state.imageScale;
+            page.ocrWords = state.ocrWords;
+            page.ocrSourceData = page.imageData;
+            page.rectangleMode = state.rectangleMode;
+            page.drawingMode = state.drawingMode;
+            restorePageAtIndex(activePageIndex);
+        }
+
+        function undoCanvasChange() {
+            flushCanvasHistoryCapture();
+            const page = pages[activePageIndex];
+            if (!page || page.historyIndex <= 0) return;
+            page.historyIndex--;
+            restoreCanvasHistoryState(page.history[page.historyIndex]);
+            updateHistoryButtons();
+        }
+
+        function redoCanvasChange() {
+            flushCanvasHistoryCapture();
+            const page = pages[activePageIndex];
+            if (!page || page.historyIndex >= page.history.length - 1) return;
+            page.historyIndex++;
+            restoreCanvasHistoryState(page.history[page.historyIndex]);
+            updateHistoryButtons();
+        }
+
+        function handleHistoryShortcut(event) {
+            if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+            const target = event.target;
+            const isCanvasTextInput = target === canvas.getActiveObject()?.hiddenTextarea;
+            if (target instanceof HTMLElement && (target.isContentEditable ||
+                (/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName) && !isCanvasTextInput))) return;
+
+            const key = event.key.toLowerCase();
+            const undo = key === 'z' && !event.shiftKey;
+            const redo = key === 'y' || (key === 'z' && event.shiftKey);
+            if (!undo && !redo) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (undo) undoCanvasChange();
+            else redoCanvasChange();
+        }
+
+        // تهيئة اللوحة (Canvas)
+        window.onload = function() {
+            canvas = new fabric.Canvas('canvas', {
+                width: 500,
+                height: 500,
+                backgroundColor: '#f3f4f6'
+            });
+            canvas.upperCanvasEl.addEventListener('click', event => {
+                if (Date.now() - lastCanvasTouchAt < 700) {
+                    lastCanvasTouchAt = 0;
+                    return;
+                }
+                editSelectedText(event);
+            });
+            canvas.upperCanvasEl.addEventListener('dblclick', selectOcrPhrase);
+            canvas.upperCanvasEl.addEventListener('click', sampleSelectedTextColor, true);
+            canvas.upperCanvasEl.addEventListener('touchstart', event => {
+                if (event.touches.length !== 1) {
+                    canvasTouchStart = null;
+                    return;
+                }
+                const touch = event.touches[0];
+                canvasTouchStart = { x: touch.clientX, y: touch.clientY };
+            }, { passive: true });
+            canvas.upperCanvasEl.addEventListener('touchend', event => {
+                const touch = event.changedTouches[0];
+                const start = canvasTouchStart;
+                canvasTouchStart = null;
+                if (!touch || !start || canvas.isDrawingMode) return;
+
+                const movement = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
+                if (movement > 14) return;
+
+                const bounds = canvas.upperCanvasEl.getBoundingClientRect();
+                const pointer = {
+                    x: (touch.clientX - bounds.left) * canvas.getWidth() / bounds.width,
+                    y: (touch.clientY - bounds.top) * canvas.getHeight() / bounds.height
+                };
+                lastCanvasTouchAt = Date.now();
+                if (isPickingTextColor) sampleSelectedTextColor(null, pointer);
+                else editSelectedText(null, pointer);
+                event.preventDefault();
+            }, { passive: false });
+            canvas.upperCanvasEl.addEventListener('touchcancel', () => {
+                canvasTouchStart = null;
+            }, { passive: true });
+            canvas.on('selection:created', updateTextProperties);
+            canvas.on('selection:updated', updateTextProperties);
+            canvas.on('selection:cleared', updateTextProperties);
+            canvas.on('object:added', updateEmptyState);
+            canvas.on('object:removed', updateEmptyState);
+            document.getElementById('emptyUploadBtn').addEventListener('click', () => {
+                document.getElementById('uploadImageBtn').click();
+            });
+            // إعدادات الفرشاة
+            canvas.freeDrawingBrush.color = document.getElementById('brushColor').value;
+            canvas.freeDrawingBrush.width = parseInt(document.getElementById('brushSize').value, 10);
+            pages = [{
+                json: canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']),
+                width: canvas.getWidth(),
+                height: canvas.getHeight(),
+                imageData: null,
+                imageScale: 1,
+                ocrWords: [],
+                ocrSourceData: null,
+                rectangleMode: false,
+                drawingMode: false
+            }];
+            imageWorkspaceState = { pages, activePageIndex };
+            setupRectangleDrawing();
+            bindCanvasHistory();
+            initializePageHistory(pages[0]);
+            renderPageTabs();
+            updateEmptyState();
+            fitCanvasToWorkspace();
+            window.addEventListener('resize', fitCanvasToWorkspace);
+        };
+
+        function fitCanvasToWorkspace() {
+            if (!canvas) return;
+            const workspace = canvas.wrapperEl.parentElement;
+            const maxWidth = Math.max(1, workspace.clientWidth - 32);
+            const maxHeight = Math.max(1, workspace.clientHeight - 24);
+            const displayScale = Math.min(1, maxWidth / canvas.getWidth(), maxHeight / canvas.getHeight());
+            const displayWidth = Math.round(canvas.getWidth() * displayScale);
+            const displayHeight = Math.round(canvas.getHeight() * displayScale);
+
+            canvas.wrapperEl.style.width = `${displayWidth}px`;
+            canvas.wrapperEl.style.height = `${displayHeight}px`;
+            [canvas.lowerCanvasEl, canvas.upperCanvasEl].forEach(element => {
+                element.style.width = `${displayWidth}px`;
+                element.style.height = `${displayHeight}px`;
+            });
+            canvas.calcOffset();
+        }
+
+        function updateEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            if (!emptyState || !canvas) return;
+            emptyState.classList.toggle('hidden', Boolean(canvas.backgroundImage || canvas.getObjects().length));
+        }
+
+        function colorToHex(color) {
+            if (typeof color !== 'string') return '#183238';
+            if (color.startsWith('#')) return color.slice(0, 7);
+            const channels = color.match(/\d+/g);
+            if (!channels || channels.length < 3) return '#183238';
+            return `#${channels.slice(0, 3).map(channel => Number(channel).toString(16).padStart(2, '0')).join('')}`;
+        }
+
+        function connectHexColorInput(colorInputId, hexInputId, onColorChange) {
+            const colorInput = document.getElementById(colorInputId);
+            const hexInput = document.getElementById(hexInputId);
+            const isValidHex = value => /^#[0-9a-fA-F]{6}$/.test(value);
+
+            colorInput.addEventListener('input', () => {
+                hexInput.value = colorInput.value;
+                onColorChange(colorInput.value);
+            });
+            hexInput.addEventListener('input', () => {
+                const value = hexInput.value.trim();
+                if (!isValidHex(value)) return;
+                colorInput.value = value;
+                onColorChange(value);
+            });
+            hexInput.addEventListener('change', () => {
+                if (!isValidHex(hexInput.value.trim())) hexInput.value = colorInput.value;
+            });
+        }
+
+        function updateTextProperties() {
+            const properties = document.getElementById('textProperties');
+            if (!properties || !canvas) return;
+            const text = canvas.getActiveObject();
+            const canReplaceDetectedText = text instanceof fabric.IText && text.isOcrText && !text.ocrCommitted && text.ocrWordData;
+            document.getElementById('replaceTextBtn').classList.toggle('hidden', !canReplaceDetectedText);
+            if (!(text instanceof fabric.IText)) {
+                properties.classList.add('hidden');
+                return;
+            }
+
+            properties.classList.remove('hidden');
+            const fontSelector = document.getElementById('fontFamilySelect');
+            if (![...fontSelector.options].some(option => option.value === text.fontFamily)) {
+                fontSelector.add(new Option(text.fontFamily, text.fontFamily));
+            }
+            fontSelector.value = text.fontFamily;
+            const fill = text.isOcrText && !text.ocrCommitted ? text.ocrWordData?.textColor : text.fill;
+            const textColor = colorToHex(fill);
+            document.getElementById('textColorInput').value = textColor;
+            document.getElementById('textColorHex').value = textColor;
+        }
+
+        function cancelTextColorSampling() {
+            isPickingTextColor = false;
+            textColorTarget = null;
+            document.getElementById('sampleTextColorBtn').classList.remove('is-active');
+            document.getElementById('textPropertyStatus').classList.add('hidden');
+        }
+
+        function sampleSelectedTextColor(event, pointerOverride) {
+            if (!isPickingTextColor || (!event && !pointerOverride)) return false;
+            canvas.calcOffset();
+            const text = textColorTarget;
+            const background = canvas.backgroundImage;
+            const sourceElement = ocrSourceCanvas || background?.getElement();
+            if (!(text instanceof fabric.IText) || !sourceElement) {
+                document.getElementById('textPropertyStatus').textContent = translations[isArabic ? 'ar' : 'en'].sampleColorError;
+                document.getElementById('textPropertyStatus').classList.remove('hidden');
+                cancelTextColorSampling();
+                return false;
+            }
+
+            const pointer = pointerOverride || canvas.getPointer(event);
+            const sourceX = Math.floor((pointer.x - (background?.left || 0)) / (background?.scaleX || 1));
+            const sourceY = Math.floor((pointer.y - (background?.top || 0)) / (background?.scaleY || 1));
+            const sourceCanvas = ocrSourceCanvas || document.createElement('canvas');
+            let sourceContext = ocrSourceContext;
+            if (!ocrSourceCanvas) {
+                sourceCanvas.width = sourceElement.naturalWidth || sourceElement.width;
+                sourceCanvas.height = sourceElement.naturalHeight || sourceElement.height;
+                sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+                sourceContext.drawImage(sourceElement, 0, 0);
+            }
+
+            if (sourceX < 0 || sourceY < 0 || sourceX >= sourceCanvas.width || sourceY >= sourceCanvas.height) return false;
+            const pixel = sourceContext.getImageData(sourceX, sourceY, 1, 1).data;
+            const color = `#${[pixel[0], pixel[1], pixel[2]].map(channel => channel.toString(16).padStart(2, '0')).join('')}`;
+            commitOcrText(text);
+            text.set('fill', color);
+            canvas.setActiveObject(text);
+            text.setCoords();
+            document.getElementById('textColorInput').value = color;
+            document.getElementById('textColorHex').value = color;
+            canvas.renderAll();
+            scheduleCanvasHistoryCapture();
+            cancelTextColorSampling();
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            return true;
+        }
+
+        function renderPageTabs() {
+            const tabs = document.getElementById('pageTabs');
+            const lang = isArabic ? 'ar' : 'en';
+            tabs.setAttribute('aria-label', translations[lang].pages);
+            tabs.replaceChildren();
+            pages.forEach((page, index) => {
+                const tab = document.createElement('button');
+                tab.type = 'button';
+                tab.className = `page-tab${index === activePageIndex ? ' is-current' : ''}`;
+                tab.role = 'tab';
+                tab.setAttribute('aria-selected', index === activePageIndex ? 'true' : 'false');
+                tab.dataset.pageIndex = index;
+                tab.textContent = `${translations[lang].page} ${index + 1}`;
+                tabs.appendChild(tab);
+            });
+        }
+
+        function saveActivePage() {
+            flushCanvasHistoryCapture();
+            const page = pages[activePageIndex];
+            if (!page || !canvas) return;
+
+            page.json = canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']);
+            page.width = canvas.getWidth();
+            page.height = canvas.getHeight();
+            page.imageData = currentImageData;
+            page.imageScale = imageScale;
+            page.ocrWords = ocrWords.map(word => ({ ...word, bbox: { ...word.bbox } }));
+            page.ocrSourceData = ocrSourceCanvas ? ocrSourceCanvas.toDataURL('image/png') : null;
+            page.drawingMode = canvas.isDrawingMode;
+        }
+
+        function syncActiveWorkspaceState() {
+            const state = { pages, activePageIndex };
+            if (activeWorkspaceMode === 'pdf') pdfWorkspaceState = state;
+            else imageWorkspaceState = state;
+        }
+
+        function restoreOcrSource(sourceData) {
+            ocrSourceCanvas = null;
+            ocrSourceContext = null;
+            if (!sourceData) return;
+
+            const sourceImage = new Image();
+            sourceImage.onload = () => {
+                ocrSourceCanvas = document.createElement('canvas');
+                ocrSourceCanvas.width = sourceImage.naturalWidth;
+                ocrSourceCanvas.height = sourceImage.naturalHeight;
+                ocrSourceContext = ocrSourceCanvas.getContext('2d', { willReadFrequently: true });
+                ocrSourceContext.drawImage(sourceImage, 0, 0);
+            };
+            sourceImage.src = sourceData;
+        }
+
+        function switchToPage(index) {
+            if (index === activePageIndex || !pages[index]) return;
+            flushCanvasHistoryCapture();
+            saveActivePage();
+            restorePageAtIndex(index);
+            syncActiveWorkspaceState();
+        }
+
+        function restorePageAtIndex(index) {
+            clearTimeout(historyCaptureTimer);
+            historyCaptureTimer = null;
+            isRestoringCanvas = true;
+            activePageIndex = index;
+            const page = pages[index];
+            currentImageData = page.imageData;
+            imageScale = page.imageScale;
+            ocrWords = page.ocrWords.map(word => ({ ...word, bbox: { ...word.bbox } }));
+            restoreOcrSource(page.ocrSourceData);
+            rectangleInProgress = null;
+
+            canvas.isDrawingMode = false;
+            canvas.setWidth(page.width);
+            canvas.setHeight(page.height);
+            canvas.loadFromJSON(page.json, () => {
+                ocrObjects = canvas.getObjects().filter(object => object.isOcrText);
+                ocrObjects.forEach(object => {
+                    object.on('changed', () => commitOcrText(object));
+                });
+                canvas.isDrawingMode = isRectMaskMode ? false : page.drawingMode;
+                document.getElementById('brushSettings').style.display = (canvas.isDrawingMode || isRectMaskMode) ? 'flex' : 'none';
+                document.getElementById('drawBtn').classList.toggle('is-active', canvas.isDrawingMode);
+                document.getElementById('drawBtn').textContent = translations[isArabic ? 'ar' : 'en'][canvas.isDrawingMode ? 'drawActive' : 'draw'];
+                document.getElementById('rectangleEraseBtn').classList.toggle('is-active', isRectMaskMode);
+                document.getElementById('rectangleEraseBtn').textContent = translations[isArabic ? 'ar' : 'en'][isRectMaskMode ? 'rectangleEraseActive' : 'rectangleErase'];
+                canvas.skipTargetFind = isRectMaskMode;
+                canvas.selection = !isRectMaskMode;
+                canvas.upperCanvasEl.style.touchAction = isRectMaskMode || page.rectangleMode ? 'none' : 'manipulation';
+                document.getElementById('recognizePdfBtn').disabled = activeWorkspaceMode !== 'pdf';
+                isRestoringCanvas = false;
+                initializePageHistory(page);
+                updateEmptyState();
+                canvas.renderAll();
+                renderPageTabs();
+                fitCanvasToWorkspace();
+                updateTextProperties();
+            });
+        }
+
+        function addNewPage() {
+            saveActivePage();
+            const page = {
+                json: null,
+                width: 794,
+                height: 1123,
+                imageData: null,
+                imageScale: 1,
+                ocrWords: [],
+                ocrSourceData: null,
+                rectangleMode: true,
+                drawingMode: false
+            };
+            pages.push(page);
+            activePageIndex = pages.length - 1;
+            currentImageData = null;
+            imageScale = 1;
+            ocrWords = [];
+            ocrObjects = [];
+            ocrSourceCanvas = null;
+            ocrSourceContext = null;
+            rectangleInProgress = null;
+
+            isRestoringCanvas = true;
+            canvas.isDrawingMode = false;
+            canvas.clear();
+            canvas.setWidth(page.width);
+            canvas.setHeight(page.height);
+            canvas.setBackgroundColor('#ffffff', () => {
+                page.json = canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']);
+                syncActiveWorkspaceState();
+                isRestoringCanvas = false;
+                initializePageHistory(page);
+                updateEmptyState();
+                renderPageTabs();
+                fitCanvasToWorkspace();
+            });
+            canvas.upperCanvasEl.style.touchAction = 'none';
+            document.getElementById('brushSettings').style.display = 'none';
+            document.getElementById('drawBtn').classList.remove('is-active');
+            document.getElementById('drawBtn').textContent = translations[isArabic ? 'ar' : 'en'].draw;
+            document.getElementById('editTextHint').classList.add('hidden');
+            syncActiveWorkspaceState();
+        }
+
+        function loadPdfJs() {
+            if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+            if (pdfLibraryPromise) return pdfLibraryPromise;
+
+            pdfLibraryPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                script.onload = () => resolve(window.pdfjsLib);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            return pdfLibraryPromise;
+        }
+
+        function loadJsPdf() {
+            if (window.jspdf?.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+            if (jsPdfLibraryPromise) return jsPdfLibraryPromise;
+
+            jsPdfLibraryPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = () => resolve(window.jspdf?.jsPDF);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            return jsPdfLibraryPromise;
+        }
+
+        function createFabricPageState(imageData, width, height) {
+            return new Promise((resolve, reject) => {
+                const stagingCanvas = new fabric.StaticCanvas(null, {
+                    width,
+                    height,
+                    backgroundColor: '#ffffff'
+                });
+                fabric.Image.fromURL(imageData, image => {
+                    if (!image) {
+                        stagingCanvas.dispose();
+                        reject(new Error('Could not create the PDF page image.'));
+                        return;
+                    }
+                    stagingCanvas.setBackgroundImage(image, () => {
+                        const pageJson = stagingCanvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']);
+                        stagingCanvas.dispose();
+                        resolve(pageJson);
+                    }, { scaleX: 1, scaleY: 1 });
+                });
+            });
+        }
+
+        function yieldToBrowser() {
+            return new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        function renderPdfPage(pdfPage, renderContext, viewport) {
+            const renderTask = pdfPage.render({ canvasContext: renderContext, viewport });
+            renderTask.onContinue = continueRendering => setTimeout(continueRendering, 0);
+            let timeoutId;
+            const timeout = new Promise((resolve, reject) => {
+                timeoutId = setTimeout(() => {
+                    reject(new Error('PDF_PAGE_RENDER_TIMEOUT'));
+                    renderTask.cancel();
+                }, 20000);
+            });
+            return Promise.race([renderTask.promise, timeout]).finally(() => clearTimeout(timeoutId));
+        }
+
+        function saveCurrentWorkspace() {
+            saveActivePage();
+            syncActiveWorkspaceState();
+        }
+
+        function switchWorkspaceMode(mode) {
+            if (mode === activeWorkspaceMode) return;
+            const targetState = mode === 'pdf' ? pdfWorkspaceState : imageWorkspaceState;
+            if (!targetState) return;
+
+            saveCurrentWorkspace();
+            activeWorkspaceMode = mode;
+            pages = targetState.pages;
+            restorePageAtIndex(targetState.activePageIndex);
+            document.getElementById('modeMenu').open = false;
+        }
+
+        async function importPdf(file) {
+            const status = document.getElementById('ocrStatus');
+            const pdfButton = document.getElementById('pdfModeBtn');
+            const lang = isArabic ? 'ar' : 'en';
+            pdfButton.disabled = true;
+            status.textContent = translations[lang].pdfLoading;
+
+            try {
+                const pdfjs = await loadPdfJs();
+                pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdfDocument = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+                const importedPages = [];
+                const maxPagePixels = 3_000_000;
+
+                for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+                    status.textContent = `${translations[lang].pdfPageProgress}${pageNumber} / ${pdfDocument.numPages}`;
+                    await yieldToBrowser();
+                    const pdfPage = await pdfDocument.getPage(pageNumber);
+                    const sourceViewport = pdfPage.getViewport({ scale: 1 });
+                    const renderScale = Math.min(2, Math.sqrt(maxPagePixels / (sourceViewport.width * sourceViewport.height)));
+                    const renderViewport = pdfPage.getViewport({ scale: renderScale });
+                    const renderCanvas = document.createElement('canvas');
+                    renderCanvas.width = Math.ceil(renderViewport.width);
+                    renderCanvas.height = Math.ceil(renderViewport.height);
+                    const renderContext = renderCanvas.getContext('2d', { alpha: false });
+                    await renderPdfPage(pdfPage, renderContext, renderViewport);
+
+                    const imageData = renderCanvas.toDataURL('image/jpeg', 0.96);
+                    const pageWidth = renderCanvas.width;
+                    const pageHeight = renderCanvas.height;
+                    const pageJson = await createFabricPageState(imageData, pageWidth, pageHeight);
+                    renderCanvas.width = 0;
+                    renderCanvas.height = 0;
+                    pdfPage.cleanup();
+                    importedPages.push({
+                        json: pageJson,
+                        width: pageWidth,
+                        height: pageHeight,
+                        imageData,
+                        imageScale: 1,
+                        ocrWords: [],
+                        ocrSourceData: null,
+                        rectangleMode: false,
+                        drawingMode: false,
+                        pdfWidthPoints: sourceViewport.width,
+                        pdfHeightPoints: sourceViewport.height
+                    });
+                    await yieldToBrowser();
+                }
+
+                saveCurrentWorkspace();
+                pdfWorkspaceState = { pages: importedPages, activePageIndex: 0 };
+                pdfFileName = file.name.replace(/\.pdf$/i, '') || 'edited-document';
+                activeWorkspaceMode = 'pdf';
+                pages = pdfWorkspaceState.pages;
+                status.textContent = '';
+                restorePageAtIndex(0);
+                document.getElementById('modeMenu').open = false;
+            } catch (error) {
+                status.textContent = error.message === 'PDF_PAGE_RENDER_TIMEOUT'
+                    ? translations[lang].pdfRenderTimeout
+                    : translations[lang].pdfLoadError;
+                if (error.message !== 'PDF_PAGE_RENDER_TIMEOUT' && error.name !== 'RenderingCancelledException') {
+                    console.error(error);
+                }
+            } finally {
+                pdfButton.disabled = false;
+            }
+        }
+
+        async function createPdfOutput() {
+            const JsPdf = await loadJsPdf();
+            if (!JsPdf) throw new Error('jsPDF did not load.');
+            saveCurrentWorkspace();
+            let outputPdf = null;
+
+            for (let index = 0; index < pages.length; index++) {
+                const page = pages[index];
+                const stagingCanvas = new fabric.StaticCanvas(null, { width: page.width, height: page.height });
+                await new Promise(resolve => stagingCanvas.loadFromJSON(page.json, resolve));
+                const imageData = stagingCanvas.toDataURL({ format: 'png', multiplier: 1 });
+                stagingCanvas.dispose();
+
+                const pageWidth = page.pdfWidthPoints || page.width * 0.75;
+                const pageHeight = page.pdfHeightPoints || page.height * 0.75;
+                if (!outputPdf) {
+                    outputPdf = new JsPdf({
+                        orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
+                        unit: 'pt',
+                        format: [pageWidth, pageHeight],
+                        compress: true
+                    });
+                } else {
+                    outputPdf.addPage([pageWidth, pageHeight], pageWidth > pageHeight ? 'landscape' : 'portrait');
+                }
+                outputPdf.addImage(imageData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+            }
+
+            if (!outputPdf) throw new Error('There are no pages to export.');
+            return outputPdf;
+        }
+
+        async function downloadPdf() {
+            const status = document.getElementById('ocrStatus');
+            const button = document.getElementById('downloadPdfBtn');
+            const lang = isArabic ? 'ar' : 'en';
+            button.disabled = true;
+            status.textContent = translations[lang].pdfLoading;
+
+            try {
+                const outputPdf = await createPdfOutput();
+                outputPdf.save(`${pdfFileName}.pdf`);
+                status.textContent = '';
+                document.getElementById('modeMenu').open = false;
+            } catch (error) {
+                status.textContent = translations[lang].pdfDownloadError;
+                console.error(error);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function setupRectangleDrawing() {
+            canvas.on('mouse:down', event => {
+                const page = pages[activePageIndex];
+                if ((!isRectMaskMode && (!page?.rectangleMode || event.target)) || canvas.isDrawingMode || (event.e.button !== undefined && event.e.button !== 0)) return;
+
+                const start = { x: event.pointer.x, y: event.pointer.y };
+                const rectangle = new fabric.Rect({
+                    left: start.x,
+                    top: start.y,
+                    width: 1,
+                    height: 1,
+                    fill: 'rgba(8, 127, 114, 0.07)',
+                    stroke: document.getElementById('brushColor').value,
+                    strokeWidth: 1.5,
+                    strokeDashArray: [7, 4],
+                    strokeUniform: true,
+                    selectable: false,
+                    evented: false,
+                    objectCaching: false
+                });
+                rectangleInProgress = { start, rectangle };
+                isRestoringCanvas = true;
+                canvas.add(rectangle);
+                isRestoringCanvas = false;
+                event.e.preventDefault();
+            });
+
+            canvas.on('mouse:move', event => {
+                if (!rectangleInProgress) return;
+                const { start, rectangle } = rectangleInProgress;
+                const current = event.pointer;
+                rectangle.set({
+                    left: Math.min(start.x, current.x),
+                    top: Math.min(start.y, current.y),
+                    width: Math.max(1, Math.abs(current.x - start.x)),
+                    height: Math.max(1, Math.abs(current.y - start.y))
+                });
+                rectangle.setCoords();
+                canvas.requestRenderAll();
+            });
+
+            canvas.on('mouse:up', async () => {
+                if (!rectangleInProgress) return;
+                const rectangle = rectangleInProgress.rectangle;
+                rectangleInProgress = null;
+                if (rectangle.width < 4 || rectangle.height < 4) {
+                    isRestoringCanvas = true;
+                    canvas.remove(rectangle);
+                    isRestoringCanvas = false;
+                } else if (isRectMaskMode) {
+                    const color = document.getElementById('brushColor').value;
+                    const erasedFromImage = await eraseImageRectangle(rectangle);
+                    if (erasedFromImage) {
+                        isRestoringCanvas = true;
+                        canvas.remove(rectangle);
+                        isRestoringCanvas = false;
+                    } else {
+                        rectangle.set({ fill: color, stroke: color, strokeWidth: 0, strokeDashArray: null });
+                    }
+                } else {
+                    rectangle.set({ strokeDashArray: null });
+                }
+                canvas.requestRenderAll();
+                storeCanvasHistoryState();
+            });
+        }
+
+        async function eraseImageRectangle(rectangle) {
+            const background = canvas.backgroundImage;
+            const sourceElement = ocrSourceCanvas || background?.getElement();
+            if (!sourceElement || !currentImageData) return false;
+
+            const sourceCanvas = document.createElement('canvas');
+            sourceCanvas.width = sourceElement.naturalWidth || sourceElement.width;
+            sourceCanvas.height = sourceElement.naturalHeight || sourceElement.height;
+            const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+            sourceContext.drawImage(sourceElement, 0, 0);
+
+            const scaleX = background?.scaleX || 1;
+            const scaleY = background?.scaleY || 1;
+            const left = Math.max(0, (rectangle.left - (background?.left || 0)) / scaleX);
+            const top = Math.max(0, (rectangle.top - (background?.top || 0)) / scaleY);
+            const right = Math.min(sourceCanvas.width, (rectangle.left + rectangle.width - (background?.left || 0)) / scaleX);
+            const bottom = Math.min(sourceCanvas.height, (rectangle.top + rectangle.height - (background?.top || 0)) / scaleY);
+            if (right - left < 2 || bottom - top < 2) return false;
+
+            removePrintedText(sourceContext, { x0: left, y0: top, x1: right, y1: bottom });
+            currentImageData = sourceCanvas.toDataURL('image/png');
+            ocrSourceCanvas = sourceCanvas;
+            ocrSourceContext = sourceContext;
+
+            const overlapsRegion = bounds => bounds.x0 < right && bounds.x1 > left && bounds.y0 < bottom && bounds.y1 > top;
+            ocrWords = ocrWords.filter(word => !overlapsRegion(word.bbox));
+            ocrObjects = ocrObjects.filter(object => {
+                const overlaps = object.ocrWordData && overlapsRegion(object.ocrWordData.bbox);
+                if (overlaps) canvas.remove(object);
+                return !overlaps;
+            });
+
+            await new Promise(resolve => fabric.Image.fromURL(currentImageData, image => {
+                if (!image) {
+                    resolve();
+                    return;
+                }
+                canvas.setBackgroundImage(image, () => {
+                    canvas.renderAll();
+                    resolve();
+                }, { scaleX: scaleX, scaleY: scaleY, left: background?.left || 0, top: background?.top || 0 });
+            }));
+            return true;
+        }
+
+        // الدارك واللايت مود
+        const themeBtn = document.getElementById('themeBtn');
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                themeBtn.textContent = '☀️ Light';
+            } else {
+                themeBtn.textContent = '🌙 Dark';
+            }
+        });
+
+        // تغيير اللغة
+        const langBtn = document.getElementById('langBtn');
+        langBtn.addEventListener('click', () => {
+            isArabic = !isArabic;
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            const lang = isArabic ? 'ar' : 'en';
+            
+            document.getElementById('titleText').textContent = translations[lang].title;
+            document.getElementById('toolsTitle').textContent = translations[lang].tools;
+            document.getElementById('panelEyebrow').textContent = translations[lang].panelEyebrow;
+            document.getElementById('imageSectionTitle').textContent = translations[lang].imageSection;
+            document.getElementById('cleanupSectionTitle').textContent = translations[lang].cleanupSection;
+            document.getElementById('textSectionTitle').textContent = translations[lang].textSection;
+            document.getElementById('workspace').setAttribute('aria-label', translations[lang].workspace);
+            document.getElementById('arabicFontsGroup').label = translations[lang].arabicFonts;
+            document.getElementById('latinFontsGroup').label = translations[lang].latinFonts;
+            document.getElementById('modeMenuLabel').firstChild.nodeValue = translations[lang].modeMenu;
+            document.getElementById('imageModeBtn').textContent = translations[lang].imageMode;
+            document.getElementById('uploadImageBtn').textContent = translations[lang].uploadImage;
+            document.getElementById('pdfModeBtn').textContent = translations[lang].uploadPdf;
+            document.getElementById('downloadPdfBtn').textContent = translations[lang].downloadPdf;
+            document.getElementById('recognizePdfBtn').textContent = translations[lang].recognizePdfText;
+            document.getElementById('addPageBtn').textContent = translations[lang].addPage;
+            renderPageTabs();
+            document.getElementById('recognizeTextBtn').textContent = translations[lang].recognizeText;
+            if(!canvas.isDrawingMode) document.getElementById('drawBtn').textContent = translations[lang].draw;
+            else document.getElementById('drawBtn').textContent = translations[lang].drawActive;
+            document.getElementById('rectangleEraseBtn').textContent = translations[lang][isRectMaskMode ? 'rectangleEraseActive' : 'rectangleErase'];
+            document.getElementById('colorLabel').textContent = translations[lang].color;
+            document.getElementById('brushColorCodeLabel').textContent = translations[lang].colorCode;
+            document.getElementById('sizeLabel').textContent = translations[lang].size;
+            document.getElementById('addTextBtn').textContent = translations[lang].addText;
+            document.getElementById('editTextBtn').textContent = isTextEditArmed ? translations[lang].editPrompt : translations[lang].editText;
+            document.getElementById('replaceTextBtn').textContent = translations[lang].replaceDetectedText;
+            document.getElementById('fontFamilyLabel').textContent = translations[lang].fontFamily;
+            document.getElementById('increaseFontBtn').textContent = translations[lang].increaseFont;
+            document.getElementById('decreaseFontBtn').textContent = translations[lang].decreaseFont;
+            document.getElementById('textColorLabel').textContent = translations[lang].textColor;
+            document.getElementById('textColorHex').setAttribute('aria-label', translations[lang].colorCode);
+            document.getElementById('brushColorHex').setAttribute('aria-label', translations[lang].colorCode);
+            document.getElementById('sampleTextColorBtn').textContent = translations[lang].sampleTextColor;
+            if (isTextEditArmed) document.getElementById('editTextHint').textContent = translations[lang].editHint;
+            document.getElementById('downloadBtn').textContent = translations[lang].download;
+            document.getElementById('emptyTitle').textContent = translations[lang].emptyTitle;
+            document.getElementById('emptyUploadLabel').textContent = translations[lang].emptyUpload;
+            const undoLabel = `${translations[lang].undo} (Ctrl+Z)`;
+            const redoLabel = `${translations[lang].redo} (Ctrl+Y)`;
+            document.getElementById('historyControls').setAttribute('aria-label', translations[lang].history);
+            document.getElementById('undoBtn').title = undoLabel;
+            document.getElementById('undoBtn').setAttribute('aria-label', undoLabel);
+            document.getElementById('redoBtn').title = redoLabel;
+            document.getElementById('redoBtn').setAttribute('aria-label', redoLabel);
+            langBtn.textContent = translations[lang].lang;
+        });
+
+        document.getElementById('addPageBtn').addEventListener('click', addNewPage);
+        document.getElementById('pageTabs').addEventListener('click', event => {
+            const tab = event.target.closest('[data-page-index]');
+            if (tab) switchToPage(Number(tab.dataset.pageIndex));
+        });
+
+        document.getElementById('imageModeBtn').addEventListener('click', () => {
+            switchWorkspaceMode('image');
+            document.getElementById('modeMenu').open = false;
+        });
+
+        document.getElementById('uploadImageBtn').addEventListener('click', () => {
+            if (activeWorkspaceMode === 'pdf') switchWorkspaceMode('image');
+            document.getElementById('modeMenu').open = false;
+            document.getElementById('imageUpload').click();
+        });
+
+        document.getElementById('pdfModeBtn').addEventListener('click', () => {
+            document.getElementById('modeMenu').open = false;
+            if (activeWorkspaceMode === 'image' && pdfWorkspaceState) {
+                switchWorkspaceMode('pdf');
+            } else {
+                document.getElementById('pdfUpload').click();
+            }
+        });
+
+        document.getElementById('pdfUpload').addEventListener('change', async event => {
+            const file = event.target.files[0];
+            if (file) await importPdf(file);
+            event.target.value = '';
+        });
+
+        document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
+        document.getElementById('recognizePdfBtn').addEventListener('click', () => {
+            if (activeWorkspaceMode !== 'pdf') return;
+            document.getElementById('modeMenu').open = false;
+            document.getElementById('recognizeTextBtn').click();
+        });
+
+        // رفع الصورة
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = function(result) {
+                currentImageData = result.target.result;
+                ocrObjects.forEach(object => canvas.remove(object));
+                ocrObjects = [];
+                ocrWords = [];
+                ocrSourceCanvas = null;
+                ocrSourceContext = null;
+                fabric.Image.fromURL(result.target.result, function(image) {
+                    imageScale = 1;
+                    canvas.setWidth(image.width);
+                    canvas.setHeight(image.height);
+                    canvas.setBackgroundImage(image, () => {
+                        saveActivePage();
+                        syncActiveWorkspaceState();
+                        fitCanvasToWorkspace();
+                        canvas.renderAll();
+                        updateEmptyState();
+                        scheduleCanvasHistoryCapture();
+                    }, { scaleX: imageScale, scaleY: imageScale });
+                });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        });
+
+        connectHexColorInput('textColorInput', 'textColorHex', color => {
+            const text = canvas.getActiveObject();
+            if (!(text instanceof fabric.IText)) return;
+            commitOcrText(text);
+            text.set('fill', color);
+            canvas.renderAll();
+            scheduleCanvasHistoryCapture();
+        });
+
+        document.getElementById('sampleTextColorBtn').addEventListener('click', () => {
+            const text = canvas.getActiveObject();
+            const status = document.getElementById('textPropertyStatus');
+            if (!(text instanceof fabric.IText)) {
+                status.textContent = translations[isArabic ? 'ar' : 'en'].sampleColorError;
+                status.classList.remove('hidden');
+                return;
+            }
+            textColorTarget = text;
+            isPickingTextColor = true;
+            document.getElementById('sampleTextColorBtn').classList.add('is-active');
+            status.textContent = translations[isArabic ? 'ar' : 'en'].sampleColorHint;
+            status.classList.remove('hidden');
+        });
+
+        function loadTesseract() {
+            if (window.Tesseract) return Promise.resolve(window.Tesseract);
+            if (tesseractPromise) return tesseractPromise;
+
+            tesseractPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                script.onload = () => resolve(window.Tesseract);
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            return tesseractPromise;
+        }
+
+        function sampleImageColor(context, x0, y0, x1, y1, sampleInside, backgroundColor) {
+            const padding = 3;
+            const bounds = context.canvas;
+            const left = Math.max(0, Math.floor(x0 - padding));
+            const top = Math.max(0, Math.floor(y0 - padding));
+            const right = Math.min(bounds.width, Math.ceil(x1 + padding));
+            const bottom = Math.min(bounds.height, Math.ceil(y1 + padding));
+            const pixels = context.getImageData(left, top, right - left, bottom - top).data;
+            const color = backgroundColor ? backgroundColor.match(/\d+/g).map(Number) : null;
+            const channels = [[], [], []];
+
+            for (let y = top; y < bottom; y += 2) {
+                for (let x = left; x < right; x += 2) {
+                    const isInside = x >= x0 && x <= x1 && y >= y0 && y <= y1;
+                    if (isInside !== sampleInside) continue;
+                    const index = ((y - top) * (right - left) + x - left) * 4;
+                    const pixel = [pixels[index], pixels[index + 1], pixels[index + 2]];
+                    if (sampleInside && color) {
+                        const contrast = Math.abs(pixel[0] - color[0]) + Math.abs(pixel[1] - color[1]) + Math.abs(pixel[2] - color[2]);
+                        if (contrast < 90) continue;
+                    }
+                    channels.forEach((values, channel) => values.push(pixel[channel]));
+                }
+            }
+
+            if (!channels[0].length) return sampleInside ? '#111111' : '#ffffff';
+            const median = channels.map(values => {
+                values.sort((first, second) => first - second);
+                return values[Math.floor(values.length / 2)];
+            });
+            return `rgb(${median[0]}, ${median[1]}, ${median[2]})`;
+        }
+
+        function estimateTextStyle(context, x0, y0, x1, y1, backgroundColor) {
+            const background = backgroundColor.match(/\d+/g).map(Number);
+            const left = Math.max(0, Math.floor(x0));
+            const top = Math.max(0, Math.floor(y0));
+            const right = Math.min(context.canvas.width, Math.ceil(x1));
+            const bottom = Math.min(context.canvas.height, Math.ceil(y1));
+            const pixels = context.getImageData(left, top, right - left, bottom - top).data;
+            let inkPixels = 0;
+            let totalPixels = 0;
+            let inkTop = bottom;
+            let inkBottom = top;
+            const colorBuckets = new Map();
+
+            for (let index = 0; index < pixels.length; index += 4) {
+                const contrast = Math.abs(pixels[index] - background[0]) +
+                    Math.abs(pixels[index + 1] - background[1]) +
+                    Math.abs(pixels[index + 2] - background[2]);
+                const pixelY = top + Math.floor(index / 4 / (right - left));
+                if (contrast > 90) {
+                    inkPixels++;
+                    inkTop = Math.min(inkTop, pixelY);
+                    inkBottom = Math.max(inkBottom, pixelY);
+                }
+                if (contrast > 150) {
+                    const red = pixels[index];
+                    const green = pixels[index + 1];
+                    const blue = pixels[index + 2];
+                    const key = `${red >> 4},${green >> 4},${blue >> 4}`;
+                    const bucket = colorBuckets.get(key) || { red: 0, green: 0, blue: 0, count: 0 };
+                    bucket.red += red;
+                    bucket.green += green;
+                    bucket.blue += blue;
+                    bucket.count++;
+                    colorBuckets.set(key, bucket);
+                }
+                totalPixels++;
+            }
+
+            const dominantColor = [...colorBuckets.values()].sort((first, second) => second.count - first.count)[0];
+            const textColor = dominantColor
+                ? `rgb(${Math.round(dominantColor.red / dominantColor.count)}, ${Math.round(dominantColor.green / dominantColor.count)}, ${Math.round(dominantColor.blue / dominantColor.count)})`
+                : '#111111';
+
+            return {
+                textColor,
+                fontWeight: inkPixels / Math.max(totalPixels, 1) > 0.18 ? 'bold' : 'normal',
+                inkHeight: inkBottom >= inkTop ? inkBottom - inkTop + 1 : bottom - top
+            };
+        }
+
+        function estimateFontSize(text, fontWeight, targetHeight, maxWidth) {
+            const measureContext = document.createElement('canvas').getContext('2d');
+            measureContext.font = `${fontWeight} 100px Arial`;
+            const metrics = measureContext.measureText(text);
+            const glyphHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+            const heightSize = glyphHeight > 0 ? targetHeight * 100 / glyphHeight : targetHeight * 1.2;
+            const widthSize = metrics.width > 0 ? maxWidth * 100 / metrics.width : heightSize;
+            return Math.max(4, Math.min(heightSize, widthSize));
+        }
+
+        function findOcrWordIndex(pointer) {
+            let nearestIndex = -1;
+            let nearestDistance = Infinity;
+
+            for (let index = 0; index < ocrWords.length; index++) {
+                const bounds = ocrWords[index].bbox;
+                const left = bounds.x0 * imageScale;
+                const top = bounds.y0 * imageScale;
+                const right = bounds.x1 * imageScale;
+                const bottom = bounds.y1 * imageScale;
+                const distanceX = Math.max(left - pointer.x, 0, pointer.x - right);
+                const distanceY = Math.max(top - pointer.y, 0, pointer.y - bottom);
+                if (distanceX === 0 && distanceY === 0) return index;
+
+                const distance = Math.hypot(distanceX, distanceY);
+                const hitPadding = Math.max(8, (bounds.y1 - bounds.y0) * 0.32) * imageScale;
+                if (distance <= hitPadding && distance < nearestDistance) {
+                    nearestIndex = index;
+                    nearestDistance = distance;
+                }
+            }
+
+            return nearestIndex;
+        }
+
+        function commitOcrText(textObject) {
+            if (!textObject.isOcrText || textObject.ocrCommitted) return;
+
+            removePrintedText(ocrSourceContext, textObject.ocrWordData.bbox);
+            currentImageData = ocrSourceCanvas.toDataURL('image/png');
+            textObject.set({ fill: textObject.ocrWordData.textColor });
+            textObject.ocrCommitted = true;
+
+            const restoredImage = new Image();
+            restoredImage.onload = () => {
+                const background = new fabric.Image(restoredImage);
+                canvas.setBackgroundImage(background, () => {
+                    canvas.renderAll();
+                    scheduleCanvasHistoryCapture();
+                }, {
+                    scaleX: imageScale,
+                    scaleY: imageScale
+                });
+            };
+            restoredImage.src = currentImageData;
+        }
+
+        function removePrintedText(context, bounds) {
+            const horizontalPadding = 3;
+            const verticalPadding = 2;
+            const left = Math.max(0, Math.floor(bounds.x0) - horizontalPadding);
+            const right = Math.min(context.canvas.width - 1, Math.ceil(bounds.x1) + horizontalPadding);
+            const top = Math.max(0, Math.floor(bounds.y0) - verticalPadding);
+            const bottom = Math.min(context.canvas.height, Math.ceil(bounds.y1) + verticalPadding);
+            const width = right - left + 1;
+            const sampleTop = Math.max(0, top - verticalPadding);
+            const sampleBottom = Math.min(context.canvas.height - 1, bottom + verticalPadding);
+            const topPixels = context.getImageData(left, sampleTop, width, 1).data;
+            const bottomPixels = context.getImageData(left, sampleBottom, width, 1).data;
+
+            for (let y = top; y < bottom; y++) {
+                const row = context.createImageData(width, 1);
+                const ratio = (y - sampleTop) / Math.max(sampleBottom - sampleTop, 1);
+                for (let x = 0; x < width; x++) {
+                    const index = x * 4;
+                    row.data[index] = Math.round(topPixels[index] + (bottomPixels[index] - topPixels[index]) * ratio);
+                    row.data[index + 1] = Math.round(topPixels[index + 1] + (bottomPixels[index + 1] - topPixels[index + 1]) * ratio);
+                    row.data[index + 2] = Math.round(topPixels[index + 2] + (bottomPixels[index + 2] - topPixels[index + 2]) * ratio);
+                    row.data[index + 3] = 255;
+                }
+
+                context.putImageData(row, left, y);
+            }
+        }
+
+        document.getElementById('recognizeTextBtn').addEventListener('click', async () => {
+            const status = document.getElementById('ocrStatus');
+            const lang = isArabic ? 'ar' : 'en';
+            if (!currentImageData) {
+                status.textContent = translations[lang].ocrNoImage;
+                return;
+            }
+
+            const button = document.getElementById('recognizeTextBtn');
+            button.disabled = true;
+            status.textContent = translations[lang].ocrLoading;
+            try {
+                const tesseract = await loadTesseract();
+                const result = await tesseract.recognize(currentImageData, 'ara+eng', {
+                    logger: progress => {
+                        if (progress.status === 'recognizing text') {
+                            status.textContent = `${translations[lang].ocrProgress}${Math.round(progress.progress * 100)}%`;
+                        }
+                    }
+                });
+                const sourceImage = new Image();
+                sourceImage.src = currentImageData;
+                await sourceImage.decode();
+                ocrSourceCanvas = document.createElement('canvas');
+                ocrSourceCanvas.width = sourceImage.naturalWidth;
+                ocrSourceCanvas.height = sourceImage.naturalHeight;
+                ocrSourceContext = ocrSourceCanvas.getContext('2d', { willReadFrequently: true });
+                ocrSourceContext.drawImage(sourceImage, 0, 0);
+
+                ocrObjects.forEach(object => canvas.remove(object));
+                ocrObjects = [];
+                ocrWords = [];
+                const words = result.data.words.filter(word => word.text.trim() && word.bbox);
+                words.forEach(word => {
+                    const { x0, y0, x1, y1 } = word.bbox;
+                    const boxWidth = x1 - x0;
+                    const boxHeight = y1 - y0;
+                    if (boxWidth <= 0 || boxHeight <= 0) return;
+
+                    const background = sampleImageColor(ocrSourceContext, x0, y0, x1, y1, false);
+                    const textStyle = estimateTextStyle(ocrSourceContext, x0, y0, x1, y1, background);
+                    ocrWords.push({ ...word, ...textStyle });
+                });
+                status.textContent = ocrWords.length ? translations[lang].ocrFound : translations[lang].ocrNone;
+                scheduleCanvasHistoryCapture();
+            } catch (error) {
+                status.textContent = translations[lang].ocrError;
+                console.error(error);
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        // تشغيل وإيقاف الرسم (لعمل طمس/تحديد للنص القديم)
+        const drawBtn = document.getElementById('drawBtn');
+        const brushSettings = document.getElementById('brushSettings');
+        drawBtn.addEventListener('click', () => {
+            if (isRectMaskMode) {
+                isRectMaskMode = false;
+                canvas.skipTargetFind = false;
+                canvas.selection = true;
+                canvas.upperCanvasEl.style.touchAction = pages[activePageIndex]?.rectangleMode ? 'none' : 'manipulation';
+                rectangleEraseBtn.classList.remove('is-active');
+                rectangleEraseBtn.textContent = translations[isArabic ? 'ar' : 'en'].rectangleErase;
+            }
+            canvas.isDrawingMode = !canvas.isDrawingMode;
+            const lang = isArabic ? 'ar' : 'en';
+            
+            if (canvas.isDrawingMode) {
+                drawBtn.textContent = translations[lang].drawActive;
+                drawBtn.classList.add('is-active');
+                brushSettings.style.display = 'flex';
+            } else {
+                drawBtn.textContent = translations[lang].draw;
+                drawBtn.classList.remove('is-active');
+                brushSettings.style.display = 'none';
+            }
+        });
+
+        const rectangleEraseBtn = document.getElementById('rectangleEraseBtn');
+        rectangleEraseBtn.addEventListener('click', () => {
+            isRectMaskMode = !isRectMaskMode;
+            canvas.isDrawingMode = false;
+            canvas.skipTargetFind = isRectMaskMode;
+            canvas.selection = !isRectMaskMode;
+            if (isRectMaskMode) {
+                canvas.discardActiveObject();
+                drawBtn.classList.remove('is-active');
+                drawBtn.textContent = translations[isArabic ? 'ar' : 'en'].draw;
+            }
+            rectangleEraseBtn.classList.toggle('is-active', isRectMaskMode);
+            rectangleEraseBtn.textContent = translations[isArabic ? 'ar' : 'en'][isRectMaskMode ? 'rectangleEraseActive' : 'rectangleErase'];
+            brushSettings.style.display = isRectMaskMode ? 'flex' : 'none';
+            canvas.upperCanvasEl.style.touchAction = isRectMaskMode || pages[activePageIndex]?.rectangleMode ? 'none' : 'manipulation';
+            canvas.requestRenderAll();
+        });
+
+        // تغيير لون وحجم الفرشاة
+        connectHexColorInput('brushColor', 'brushColorHex', color => {
+            canvas.freeDrawingBrush.color = color;
+        });
+        document.getElementById('brushSize').addEventListener('change', function() {
+            canvas.freeDrawingBrush.width = parseInt(this.value, 10);
+        });
+
+        // إضافة نص
+        document.getElementById('addTextBtn').addEventListener('click', () => {
+            const lang = isArabic ? 'ar' : 'en';
+            const sourceText = canvas.getActiveObject();
+            const hasTextStyle = sourceText instanceof fabric.IText;
+            const isReplacingOcrText = hasTextStyle && sourceText.isOcrText && !sourceText.ocrCommitted && sourceText.ocrWordData;
+            if (isReplacingOcrText) commitOcrText(sourceText);
+            const selectedFontFamily = document.getElementById('fontFamilySelect').value;
+            const textStyle = hasTextStyle ? {
+                left: sourceText.left + (isReplacingOcrText ? 0 : 20),
+                top: sourceText.top + (isReplacingOcrText ? 0 : 20),
+                fontFamily: sourceText.fontFamily,
+                fill: sourceText.fill,
+                fontSize: sourceText.fontSize,
+                fontWeight: sourceText.fontWeight,
+                fontStyle: sourceText.fontStyle,
+                underline: sourceText.underline,
+                linethrough: sourceText.linethrough,
+                overline: sourceText.overline,
+                textAlign: sourceText.textAlign,
+                lineHeight: sourceText.lineHeight,
+                charSpacing: sourceText.charSpacing,
+                stroke: sourceText.stroke,
+                strokeWidth: sourceText.strokeWidth,
+                opacity: sourceText.opacity,
+                angle: sourceText.angle,
+                scaleX: isReplacingOcrText ? sourceText.scaleX : 1,
+                scaleY: isReplacingOcrText ? sourceText.scaleY : 1,
+                isOcrText: false
+            } : {
+                left: 50,
+                top: 50,
+                fontFamily: selectedFontFamily,
+                fill: '#000000',
+                fontSize: 30
+            };
+            const textOptions = isReplacingOcrText ? { ...textStyle, width: Math.max(sourceText.width, 20) } : textStyle;
+            const text = isReplacingOcrText
+                ? new fabric.Textbox(translations[lang].newTextStr, textOptions)
+                : new fabric.IText(translations[lang].newTextStr, textOptions);
+            if (isReplacingOcrText) {
+                canvas.remove(sourceText);
+                ocrObjects = ocrObjects.filter(object => object !== sourceText);
+            }
+            canvas.add(text);
+            canvas.setActiveObject(text);
+            text.enterEditing();
+            text.selectAll();
+        });
+
+        document.getElementById('replaceTextBtn').addEventListener('click', () => {
+            const text = canvas.getActiveObject();
+            if (text instanceof fabric.IText && text.isOcrText && !text.ocrCommitted && text.ocrWordData) {
+                document.getElementById('addTextBtn').click();
+            }
+        });
+
+        function createOcrText(word) {
+            const { x0, y0, x1, y1 } = word.bbox;
+            const textObject = new fabric.IText(word.text, {
+                left: x0 * imageScale,
+                top: y0 * imageScale,
+                fontFamily: 'Arial',
+                fontSize: estimateFontSize(word.text, word.fontWeight, word.inkHeight * imageScale, (x1 - x0) * imageScale),
+                fontWeight: word.fontWeight,
+                fill: 'rgba(0, 0, 0, 0)',
+                borderColor: '#267d83',
+                cornerColor: '#267d83',
+                cornerStrokeColor: '#ffffff',
+                transparentCorners: false,
+                cornerSize: 8,
+                padding: 4,
+                isOcrText: true
+            });
+            textObject.borderColor = '#267d83';
+            textObject.cornerColor = '#267d83';
+            textObject.cornerStrokeColor = '#ffffff';
+            textObject.ocrWordData = word;
+            textObject.on('changed', () => commitOcrText(textObject));
+            canvas.add(textObject);
+            textObject.setCoords();
+            ocrObjects.push(textObject);
+            canvas.setActiveObject(textObject);
+            return textObject;
+        }
+
+        function areOnSameOcrLine(firstWord, secondWord) {
+            const firstHeight = firstWord.bbox.y1 - firstWord.bbox.y0;
+            const secondHeight = secondWord.bbox.y1 - secondWord.bbox.y0;
+            const smallerHeight = Math.min(firstHeight, secondHeight);
+            const verticalOverlap = Math.max(0, Math.min(firstWord.bbox.y1, secondWord.bbox.y1) - Math.max(firstWord.bbox.y0, secondWord.bbox.y0));
+            const centerDistance = Math.abs((firstWord.bbox.y0 + firstWord.bbox.y1 - secondWord.bbox.y0 - secondWord.bbox.y1) / 2);
+            const sameOcrLine = firstWord.line_num != null && firstWord.line_num === secondWord.line_num &&
+                ['block_num', 'par_num'].every(key => firstWord[key] == null || secondWord[key] == null || firstWord[key] === secondWord[key]);
+            const sameVisualLine = verticalOverlap / smallerHeight >= 0.4 &&
+                centerDistance <= Math.max(firstHeight, secondHeight) * 0.4;
+            return sameOcrLine || sameVisualLine;
+        }
+
+        function selectOcrPhrase(event) {
+            const activeObject = canvas.getActiveObject();
+            const shouldRestoreWord = activeObject?.isOcrText && !activeObject.ocrCommitted;
+            if (shouldRestoreWord && !ocrWords.includes(activeObject.ocrWordData)) {
+                ocrWords.push(activeObject.ocrWordData);
+            }
+
+            canvas.calcOffset();
+            const pointer = canvas.getPointer(event);
+            const wordIndex = findOcrWordIndex(pointer);
+            if (wordIndex === -1) return;
+
+            const selectedWord = ocrWords[wordIndex];
+            const phraseWords = ocrWords.filter(word => areOnSameOcrLine(selectedWord, word));
+            if (phraseWords.length < 2) {
+                if (shouldRestoreWord) {
+                    ocrWords = ocrWords.filter(word => word !== activeObject.ocrWordData);
+                }
+                return;
+            }
+
+            if (shouldRestoreWord) {
+                canvas.remove(activeObject);
+                ocrObjects = ocrObjects.filter(object => object !== activeObject);
+            }
+
+            const bounds = phraseWords.reduce((combined, word) => ({
+                x0: Math.min(combined.x0, word.bbox.x0),
+                y0: Math.min(combined.y0, word.bbox.y0),
+                x1: Math.max(combined.x1, word.bbox.x1),
+                y1: Math.max(combined.y1, word.bbox.y1)
+            }), { ...phraseWords[0].bbox });
+            const phrase = {
+                ...phraseWords[0],
+                text: phraseWords.map(word => word.text).join(' '),
+                bbox: bounds,
+                fontWeight: phraseWords.some(word => word.fontWeight === 'bold') ? 'bold' : 'normal',
+                inkHeight: Math.max(...phraseWords.map(word => word.inkHeight))
+            };
+            ocrWords = ocrWords.filter(word => !phraseWords.includes(word));
+            createOcrText(phrase);
+            editSelectedText();
+        }
+
+        // تحديد محتوى النص كاملا بالنقر أو من زر التعديل.
+        function editSelectedText(event, pointerOverride) {
+            if (event) canvas.calcOffset();
+            let activeObject = canvas.getActiveObject();
+            const target = event ? canvas.findTarget(event) : null;
+            if (event && activeObject?.isOcrText && !activeObject.ocrCommitted && target !== activeObject) {
+                canvas.remove(activeObject);
+                ocrObjects = ocrObjects.filter(object => object !== activeObject);
+                if (!ocrWords.includes(activeObject.ocrWordData)) ocrWords.push(activeObject.ocrWordData);
+                activeObject = null;
+            }
+            if (target instanceof fabric.IText) {
+                canvas.setActiveObject(target);
+                activeObject = target;
+            } else if (event || pointerOverride) {
+                const pointer = pointerOverride || canvas.getPointer(event);
+                const wordIndex = findOcrWordIndex(pointer);
+                if (wordIndex !== -1) {
+                    const [word] = ocrWords.splice(wordIndex, 1);
+                    activeObject = createOcrText(word);
+                }
+            }
+
+            if (!(activeObject instanceof fabric.IText)) {
+                if (!event && !pointerOverride) {
+                    isTextEditArmed = true;
+                    const lang = isArabic ? 'ar' : 'en';
+                    document.getElementById('editTextBtn').textContent = translations[lang].editPrompt;
+                    const hint = document.getElementById('editTextHint');
+                    hint.textContent = translations[lang].editHint;
+                    hint.classList.remove('hidden');
+                }
+                return;
+            }
+
+            const fontSelector = document.getElementById('fontFamilySelect');
+            if (![...fontSelector.options].some(option => option.value === activeObject.fontFamily)) {
+                fontSelector.add(new Option(activeObject.fontFamily, activeObject.fontFamily));
+            }
+            fontSelector.value = activeObject.fontFamily;
+
+            isTextEditArmed = false;
+            const lang = isArabic ? 'ar' : 'en';
+            document.getElementById('editTextBtn').textContent = translations[lang].editText;
+            document.getElementById('editTextHint').classList.add('hidden');
+            activeObject.enterEditing();
+            activeObject.selectAll();
+            activeObject.hiddenTextarea.focus();
+            canvas.renderAll();
+        }
+
+        document.getElementById('editTextBtn').addEventListener('click', () => editSelectedText());
+
+        document.getElementById('fontFamilySelect').addEventListener('change', event => {
+            const activeObject = canvas.getActiveObject();
+            if (!(activeObject instanceof fabric.IText)) {
+                const lang = isArabic ? 'ar' : 'en';
+                const hint = document.getElementById('editTextHint');
+                hint.textContent = translations[lang].selectTextFirst;
+                hint.classList.remove('hidden');
+                return;
+            }
+
+            commitOcrText(activeObject);
+            activeObject.set('fontFamily', event.target.value);
+            activeObject.initDimensions();
+            activeObject.setCoords();
+            canvas.renderAll();
+            scheduleCanvasHistoryCapture();
+        });
+
+        function adjustSelectedFontSize(amount) {
+            const activeObject = canvas.getActiveObject();
+            const lang = isArabic ? 'ar' : 'en';
+            if (!(activeObject instanceof fabric.IText)) {
+                const hint = document.getElementById('editTextHint');
+                hint.textContent = translations[lang].selectTextFirst;
+                hint.classList.remove('hidden');
+                return;
+            }
+
+            commitOcrText(activeObject);
+            activeObject.set('fontSize', Math.max(4, activeObject.fontSize + amount));
+            activeObject.initDimensions();
+            activeObject.setCoords();
+            canvas.renderAll();
+            scheduleCanvasHistoryCapture();
+        }
+
+        document.getElementById('increaseFontBtn').addEventListener('click', () => adjustSelectedFontSize(2));
+        document.getElementById('decreaseFontBtn').addEventListener('click', () => adjustSelectedFontSize(-2));
+
+        // تحميل الصورة
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            // إخفاء التحديد المربع اللي بيظهر لما تكون ماسك النص
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            
+            const dataURL = canvas.toDataURL({
+                format: 'png',
+                quality: 1.0
+            });
+            
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'edited_image.png';
+            link.click();
+        });
+    </script>
+</body>
 </html>
