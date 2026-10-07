@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +11,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- مكتبة Fabric.js للتعامل مع الصور والرسم -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -20,32 +22,40 @@
     <style>
         :root {
             color-scheme: light;
-            --page: #f1f5f3;
+            --page: #eaf0f7;
             --surface: #ffffff;
-            --surface-muted: #f5f8f7;
-            --ink: #19363a;
-            --muted: #6f8382;
-            --line: #d9e4e0;
-            --brand: #087f72;
-            --brand-hover: #06675e;
-            --accent: #c56c48;
-            --stage: #e9f0ed;
-            --shadow: 0 14px 38px rgba(23, 51, 55, 0.09);
+            --surface-muted: #f2f6fb;
+            --ink: #172b43;
+            --muted: #5d7189;
+            --line: #d3dfeb;
+            --brand: #087f96;
+            --brand-hover: #07647e;
+            --accent: #ee7259;
+            --stage: #e4edf7;
+            --shadow: 0 20px 48px rgba(24, 48, 72, 0.13);
+            --brand-wash: #e6f4f7;
+            --blue-wash: #e9effb;
+            --green-wash: #eaf5ed;
+            --orange-wash: #fff2e6;
         }
 
         html.dark {
             color-scheme: dark;
-            --page: #121d20;
-            --surface: #1a292c;
-            --surface-muted: #203236;
-            --ink: #e7efed;
-            --muted: #a1b1b2;
-            --line: #34484b;
-            --brand: #42b7a5;
-            --brand-hover: #55c8b6;
-            --accent: #ee9a68;
-            --stage: #152326;
-            --shadow: 0 14px 38px rgba(0, 0, 0, 0.2);
+            --page: #101b2b;
+            --surface: #17283d;
+            --surface-muted: #20354d;
+            --ink: #f0f6fc;
+            --muted: #aec0d1;
+            --line: #354c66;
+            --brand: #50d0cf;
+            --brand-hover: #70e1dc;
+            --accent: #ff9878;
+            --stage: #132940;
+            --shadow: 0 20px 48px rgba(0, 0, 0, 0.32);
+            --brand-wash: #1d3d50;
+            --blue-wash: #243854;
+            --green-wash: #203f3b;
+            --orange-wash: #493a36;
         }
 
         * { box-sizing: border-box; }
@@ -53,7 +63,8 @@
         body {
             margin: 0;
             min-height: 100vh;
-            background: var(--page);
+            background-color: var(--page);
+            background-image: repeating-linear-gradient(135deg, transparent 0 42px, rgba(44, 104, 145, 0.025) 42px 43px), linear-gradient(135deg, var(--page), var(--surface-muted));
             color: var(--ink);
             font-family: 'Cairo', 'Tahoma', sans-serif;
             transition: background 180ms ease, color 180ms ease;
@@ -71,27 +82,44 @@
             align-items: center;
             justify-content: space-between;
             gap: 20px;
-            background: rgba(23, 53, 58, 0.97);
+            background: linear-gradient(108deg, #172d48 0%, #155463 58%, #087f72 100%);
             color: #f4f8f7;
-            border-bottom: 2px solid #159786;
-            box-shadow: 0 4px 18px rgba(20, 46, 49, 0.14);
+            border-bottom: 3px solid #ed765c;
+            box-shadow: 0 8px 24px rgba(19, 43, 62, 0.2);
             backdrop-filter: blur(12px);
         }
 
         .brand, .header-actions { display: flex; align-items: center; gap: 12px; }
+        .brand { min-width: 0; }
         .brand-mark {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
             display: grid;
             place-items: center;
-            border-radius: 7px;
-            background: #087f72;
-            color: white;
-            font-family: 'Cairo', sans-serif;
-            font-size: 21px;
-            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.48);
+            border-radius: 12px;
+            background: linear-gradient(145deg, #ffd66f 0%, #ffad60 54%, #f17e65 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 5px 13px rgba(10, 28, 43, 0.2);
         }
-        #titleText { margin: 0; font-size: 19px; font-weight: 700; }
+        .brand-mark svg {
+            width: 29px;
+            height: 29px;
+            overflow: visible;
+            fill: none;
+            stroke: #203448;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2.2;
+        }
+        #titleText {
+            margin: 0;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-shadow: 0 1px 10px rgba(6, 23, 37, 0.16);
+        }
         .header-actions { gap: 8px; }
         .utility-btn {
             min-height: 38px;
@@ -102,7 +130,7 @@
             color: #f4f8f7;
             cursor: pointer;
         }
-        .utility-btn:hover { background: rgba(255, 255, 255, 0.1); }
+        .utility-btn:hover { background: rgba(255, 255, 255, 0.13); border-color: rgba(255, 255, 255, 0.36); }
         .history-controls {
             display: flex;
             align-items: center;
@@ -190,18 +218,27 @@
             top: 92px;
             max-height: calc(100vh - 112px);
             overflow-y: auto;
-            padding: 20px;
+            padding: 17px;
             display: flex;
             flex-direction: column;
             gap: 14px;
             background: var(--surface);
             border: 1px solid var(--line);
-            border-radius: 8px;
+            border-radius: 9px;
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, #ee7259, #f2b84b 32%, #159ca2 68%, #5275bd) 1;
             box-shadow: var(--shadow);
             scrollbar-width: thin;
             scrollbar-color: #bbcfca transparent;
         }
-        .panel-heading { padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+        .panel-heading {
+            margin: -17px -17px 0;
+            padding: 18px 20px 15px;
+            border: 0;
+            border-bottom: 2px solid var(--brand);
+            border-radius: 7px 7px 0 0;
+            background: linear-gradient(115deg, var(--brand-wash), var(--blue-wash) 56%, var(--orange-wash));
+        }
         .panel-eyebrow {
             display: block;
             margin-bottom: 3px;
@@ -214,8 +251,13 @@
             text-align: right;
         }
         #toolsTitle { margin: 0; font-size: 19px; font-weight: 700; }
-        .section-label { margin: 0; color: var(--muted); font-size: 12px; font-weight: 700; }
-        .tool-divider { height: 1px; background: var(--line); }
+        .section-label { margin: 0; min-height: 32px; padding: 6px 9px; display: flex; align-items: center; gap: 8px; border: 1px solid #d4e9ed; border-radius: 5px; background: linear-gradient(100deg, var(--brand-wash), transparent); color: var(--ink); font-size: 12px; font-weight: 700; }
+        .section-label::before { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 2px; background: var(--brand); content: ''; }
+        #cleanupSectionTitle { border-color: #f3dec8; background: linear-gradient(100deg, var(--orange-wash), transparent); }
+        #cleanupSectionTitle::before { background: #e58b3f; }
+        #textSectionTitle { border-color: #d7e9dc; background: linear-gradient(100deg, var(--green-wash), transparent); }
+        #textSectionTitle::before { background: #43886a; }
+        .tool-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--line), transparent); }
         #addPageBtn {
             min-height: 43px;
             width: 100%;
@@ -224,10 +266,10 @@
             align-items: center;
             justify-content: center;
             gap: 9px;
-            border: 1px solid #c9ded9;
-            border-radius: 5px;
-            background: #e9f4f1;
-            color: #17685f;
+            border: 1px solid #c5dce6;
+            border-radius: 6px;
+            background: linear-gradient(120deg, #edf5fb, #e9f7f4);
+            color: #176273;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -236,7 +278,7 @@
         #addPageBtn:hover { background: #dcece8; transform: translateY(-1px); }
         html.dark #addPageBtn { border-color: #456b65; background: #24413d; color: #a9e0d5; }
         html.dark #addPageBtn:hover { background: #2b4d47; }
-        .upload-control, #recognizeTextBtn, #drawBtn, #rectangleEraseBtn, #addTextBtn, #editTextBtn, #replaceTextBtn,
+        .upload-control, #recognizeTextBtn, #drawBtn, #rectangleEraseBtn, #addTextBtn, #editTextBtn, #replaceTextBtn, #formatPainterBtn,
         #increaseFontBtn, #decreaseFontBtn, #downloadBtn {
             min-height: 43px;
             width: 100%;
@@ -255,7 +297,7 @@
             transition: background 140ms ease, transform 140ms ease, box-shadow 140ms ease;
         }
         .upload-control:hover, #recognizeTextBtn:hover, #drawBtn:hover, #rectangleEraseBtn:hover, #addTextBtn:hover,
-        #editTextBtn:hover, #replaceTextBtn:hover, #increaseFontBtn:hover, #decreaseFontBtn:hover, #downloadBtn:hover {
+        #editTextBtn:hover, #replaceTextBtn:hover, #formatPainterBtn:hover, #increaseFontBtn:hover, #decreaseFontBtn:hover, #downloadBtn:hover {
             transform: translateY(-1px);
             box-shadow: 0 5px 12px rgba(20, 48, 50, 0.12);
         }
@@ -265,28 +307,54 @@
         .upload-control input { display: none; }
         #recognizeTextBtn {
             min-height: 46px;
-            background: #267d83;
-            box-shadow: 0 3px 8px rgba(38, 125, 131, 0.16);
+            background: linear-gradient(110deg, #087f96, #13a89a);
+            box-shadow: 0 6px 16px rgba(8, 127, 150, 0.25);
         }
-        #recognizeTextBtn:hover { background: #206a70; box-shadow: 0 5px 12px rgba(38, 125, 131, 0.22); }
+        #recognizeTextBtn:hover { background: linear-gradient(110deg, #066572, #0a817e); box-shadow: 0 7px 17px rgba(8, 127, 140, 0.28); }
         #recognizeTextBtn:disabled { opacity: 0.65; cursor: wait; transform: none; }
-        #drawBtn { background: #b46b28; }
-        #drawBtn:hover { background: #96551f; }
-        #drawBtn.is-active { background: #a64740; }
-        #rectangleEraseBtn { background: #416f9e; }
-        #rectangleEraseBtn:hover { background: #345c84; }
-        #rectangleEraseBtn.is-active { background: #a64740; }
-        #addTextBtn { background: #32815d; }
-        #addTextBtn:hover { background: #28694b; }
-        #editTextBtn { background: #416f9e; }
-        #editTextBtn:hover { background: #345c84; }
-        #replaceTextBtn { background: #267d83; }
-        #replaceTextBtn:hover { background: #206a70; }
+        #drawBtn { background: linear-gradient(110deg, #d65d2d, #f0a333); }
+        #drawBtn:hover { background: linear-gradient(110deg, #bd4d23, #dc8a25); }
+        #drawBtn.is-active { background: #c84e57; }
+        #rectangleEraseBtn { background: linear-gradient(110deg, #365fa8, #477fbd); }
+        #rectangleEraseBtn:hover { background: linear-gradient(110deg, #294e91, #376ca8); }
+        #rectangleEraseBtn.is-active { background: #c84e57; }
+        #cropImageBtn { background: linear-gradient(110deg, #6456b5, #8771d1); }
+        #cropImageBtn:hover { background: linear-gradient(110deg, #51439c, #705bbb); }
+        #cropImageBtn.is-active { background: linear-gradient(110deg, #d65d2d, #ee8754); }
+        #cropImageBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .crop-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+        .crop-actions.hidden { display: none; }
+        #applyCropBtn, #cancelCropBtn {
+            min-height: 39px;
+            padding: 7px 9px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        #applyCropBtn { background: linear-gradient(110deg, #21805f, #36a17b); }
+        #applyCropBtn:hover { background: #17694c; }
+        #cancelCropBtn { background: linear-gradient(110deg, #65798c, #8292a2); }
+        #cancelCropBtn:hover { background: #506375; }
+        #cropStatus { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+        #cropStatus.hidden { display: none; }
+        #addTextBtn { background: linear-gradient(110deg, #22805f, #3b9c70); }
+        #addTextBtn:hover { background: linear-gradient(110deg, #17694c, #2d805b); }
+        #editTextBtn { background: linear-gradient(110deg, #5357a8, #627bc6); }
+        #editTextBtn:hover { background: linear-gradient(110deg, #41458e, #5066aa); }
+        #replaceTextBtn { background: linear-gradient(110deg, #087f8c, #139b95); }
+        #replaceTextBtn:hover { background: #066572; }
         #replaceTextBtn.hidden { display: none; }
-        #increaseFontBtn { background: #087f72; }
-        #decreaseFontBtn { background: #58777a; }
-        #downloadBtn { margin-top: 3px; background: #b75a45; }
-        #downloadBtn:hover { background: #984837; }
+        #formatPainterBtn { background: linear-gradient(110deg, #087f8c, #139b95); }
+        #formatPainterBtn:hover { background: #066572; }
+        #formatPainterBtn.is-ready { background: linear-gradient(110deg, #d9782d, #ed765c); }
+        #formatPainterBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+        #increaseFontBtn { background: #087f8c; }
+        #decreaseFontBtn { background: #65798c; }
+        #downloadBtn { margin-top: 3px; background: linear-gradient(110deg, #d65f52, #ed765c); }
+        #downloadBtn:hover { background: #c84e45; }
         #fontFamilyLabel, #colorLabel, #sizeLabel { color: var(--muted); font-size: 12px; font-weight: 700; }
         #fontFamilySelect {
             min-height: 42px;
@@ -328,7 +396,7 @@
             color: var(--ink);
         }
         #ocrStatus:empty { display: none; }
-        #recognizeTextBtn:focus-visible, .upload-control:focus-visible, #drawBtn:focus-visible, #replaceTextBtn:focus-visible,
+        #recognizeTextBtn:focus-visible, .upload-control:focus-visible, #drawBtn:focus-visible, #cropImageBtn:focus-visible, #applyCropBtn:focus-visible, #cancelCropBtn:focus-visible, #replaceTextBtn:focus-visible, #formatPainterBtn:focus-visible, .tool-action:focus-visible,
         #rectangleEraseBtn:focus-visible, #addTextBtn:focus-visible, #editTextBtn:focus-visible {
             outline: 3px solid rgba(38, 125, 131, 0.3);
             outline-offset: 2px;
@@ -336,6 +404,47 @@
         .size-controls { display: flex; gap: 8px; }
         .text-properties { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
         .text-properties.hidden { display: none; }
+        .tool-group {
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            background: var(--surface-muted);
+        }
+        .tool-group > summary {
+            min-height: 42px;
+            padding: 8px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            list-style: none;
+        }
+        .tool-group > summary::-webkit-details-marker { display: none; }
+        .tool-group > summary::after { color: var(--brand); content: '+'; font-family: Arial, sans-serif; font-size: 18px; }
+        .tool-group[open] > summary::after { content: '\2212'; }
+        .tool-grid { padding: 0 8px 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+        .tool-action {
+            min-height: 39px;
+            padding: 6px 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: border-color 140ms ease, color 140ms ease, background 140ms ease, transform 140ms ease;
+        }
+        .tool-action span { color: var(--brand); font-family: Arial, sans-serif; font-size: 16px; line-height: 1; }
+        .tool-action:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--brand); color: var(--brand); }
+        .tool-action:disabled { opacity: 0.48; cursor: not-allowed; }
+        .tool-group:focus-within { border-color: color-mix(in srgb, var(--brand) 42%, var(--line)); }
         .text-color-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         #textColorLabel { color: var(--muted); font-size: 12px; font-weight: 700; }
         #textColorInput { width: 54px; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: pointer; }
@@ -366,13 +475,14 @@
             gap: 12px;
             overflow: auto;
             background-color: var(--stage);
-            background-image: radial-gradient(rgba(72, 101, 99, 0.15) 0.7px, transparent 0.7px);
-            background-size: 18px 18px;
-            border: 1px solid var(--line);
-            border-radius: 9px;
+            background-image: radial-gradient(rgba(47, 101, 143, 0.2) 0.8px, transparent 0.8px), linear-gradient(145deg, #e8f2f8 0%, #e8edf9 52%, #f7eee8 100%);
+            background-size: 19px 19px, 100% 100%;
+            border: 1px solid #cbd9e8;
+            border-radius: 11px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 12px 30px rgba(41, 72, 101, 0.07);
         }
-        html.dark .workspace { background-image: radial-gradient(rgba(172, 201, 195, 0.11) 0.7px, transparent 0.7px); }
-        .canvas-container { margin: 0 auto; border: 1px solid rgba(40, 65, 66, 0.2); border-radius: 3px; background: #fff; box-shadow: 0 18px 48px rgba(23, 51, 55, 0.18), 0 2px 6px rgba(23, 51, 55, 0.08); }
+        html.dark .workspace { background-image: radial-gradient(rgba(104, 180, 197, 0.16) 0.8px, transparent 0.8px), linear-gradient(145deg, #1b354b 0%, #202c49 55%, #3a2d38 100%); border-color: #3b5269; }
+        .canvas-container { margin: 0 auto; border: 1px solid rgba(41, 73, 97, 0.18); border-radius: 4px; background: #fff; box-shadow: 0 22px 54px rgba(27, 54, 79, 0.22), 0 3px 9px rgba(27, 54, 79, 0.1); }
         .page-tabs {
             order: 2;
             min-height: 42px;
@@ -395,7 +505,7 @@
             cursor: pointer;
         }
         .page-tab:hover { background: var(--surface); color: var(--ink); }
-        .page-tab.is-current { border-color: var(--line); border-bottom-color: var(--surface); background: var(--surface); color: var(--brand); }
+        .page-tab.is-current { border-color: var(--line); border-bottom: 2px solid var(--accent); background: var(--surface); color: var(--brand); }
         .canvas-stage {
             position: relative;
             order: 1;
@@ -425,13 +535,13 @@
             height: 62px;
             display: grid;
             place-items: center;
-            border: 1px solid #c9ddd7;
+            border: 1px solid #cfdfeb;
             border-radius: 17px;
-            background: rgba(255, 255, 255, 0.82);
+            background: linear-gradient(145deg, #e4f4f4 0%, #e9eefc 58%, #fff1e8 100%);
             color: var(--brand);
             font-family: Arial, sans-serif;
             font-size: 31px;
-            box-shadow: 0 8px 22px rgba(30, 83, 75, 0.08);
+            box-shadow: 0 10px 25px rgba(31, 74, 98, 0.13);
         }
         .empty-state h2 { margin: 0; color: var(--ink); font-size: 20px; font-weight: 700; }
         #emptyUploadBtn {
@@ -456,7 +566,8 @@
 
         @media (max-width: 800px) {
             .app-header { min-height: 66px; padding: 10px 14px; }
-            .brand-mark { width: 35px; height: 35px; }
+            .brand-mark { width: 38px; height: 38px; flex-basis: 38px; border-radius: 10px; }
+            .brand-mark svg { width: 25px; height: 25px; }
             #titleText { font-size: 16px; }
             .utility-btn { min-height: 35px; padding: 6px 9px; font-size: 12px; }
             .history-btn { width: 32px; min-height: 32px; padding: 0; }
@@ -469,8 +580,8 @@
         @media (max-width: 420px) {
             .app-header { align-items: flex-start; flex-wrap: wrap; gap: 8px; }
             .brand { gap: 8px; }
-            .brand-mark { width: 32px; height: 32px; font-size: 17px; }
-            #titleText { max-width: 150px; font-size: 14px; line-height: 1.5; }
+            .brand-mark { width: 36px; height: 36px; flex-basis: 36px; font-size: 17px; }
+            #titleText { max-width: 190px; font-size: 15px; line-height: 1.5; }
             .header-actions { width: 100%; justify-content: flex-start; gap: 5px; }
             .utility-btn { padding: 5px 7px; font-size: 11px; }
             .workspace { min-height: 50vh; }
@@ -484,7 +595,15 @@
 
     <header class="app-header">
         <div class="brand">
-            <span class="brand-mark" aria-hidden="true">م</span>
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 40 40" focusable="false">
+                    <rect x="5.5" y="8" width="25" height="22" rx="4"></rect>
+                    <circle cx="13" cy="15" r="2.5"></circle>
+                    <path d="m8.5 26 6.8-6.7 4.1 4 3.6-3.5 5.5 5.7"></path>
+                    <path d="m28 27 6-6m-2-2 2-2a2.1 2.1 0 0 1 3 3l-2 2m-1-3 2 2"></path>
+                    <path d="M34 8.5v5m-2.5-2.5h5"></path>
+                </svg>
+            </span>
             <h1 id="titleText">محرر الصور الذكي</h1>
         </div>
         <div class="header-actions">
@@ -493,16 +612,15 @@
                 <button id="redoBtn" class="utility-btn history-btn" type="button" title="إعادة (Ctrl+Y)" aria-label="إعادة (Ctrl+Y)" aria-keyshortcuts="Control+Y Control+Shift+Z Meta+Shift+Z" disabled>↷</button>
             </div>
             <details id="modeMenu" class="mode-menu">
-                <summary id="modeMenuLabel" class="utility-btn">الملفات</summary>
+                <summary id="modeMenuLabel" class="utility-btn">الصور</summary>
                 <div class="mode-menu-panel">
-                    <button id="imageModeBtn" type="button">تعديل الصور</button>
                     <button id="uploadImageBtn" type="button">رفع صورة</button>
-                    <button id="pdfModeBtn" type="button">رفع / تعديل PDF</button>
-                    <button id="recognizePdfBtn" type="button" disabled>اكتشاف نصوص وأرقام PDF</button>
+                    <button id="uploadPdfBtn" type="button">رفع ملف PDF</button>
+                    <button id="addOverlayImageBtn" type="button">إضافة صورة للصفحة</button>
                     <div class="menu-divider" aria-hidden="true"></div>
                     <button id="addPageBtn" type="button">إضافة صفحة جديدة</button>
                     <button id="downloadBtn" type="button">تنزيل الصورة</button>
-                    <button id="downloadPdfBtn" type="button">تحميل PDF</button>
+                    <button id="downloadPdfBtn" type="button">تنزيل كـ PDF</button>
                 </div>
             </details>
             <button id="themeBtn" class="utility-btn">🌙 Dark</button>
@@ -510,8 +628,9 @@
         </div>
     </header>
 
-    <input type="file" id="imageUpload" class="hidden" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
-    <input type="file" id="pdfUpload" class="hidden" accept="application/pdf,.pdf">
+    <input type="file" id="imageUpload" class="hidden" accept="image/jpeg,image/png,.jpg,.jpeg,.png,.pdf,application/pdf">
+    <input type="file" id="pdfUpload" class="hidden" accept=".pdf,application/pdf">
+    <input type="file" id="overlayImageUpload" class="hidden" accept="image/*">
 
     <main class="editor-layout">
         <aside class="tools-panel">
@@ -528,6 +647,12 @@
             <p id="cleanupSectionTitle" class="section-label">الطمس اليدوي</p>
             <button id="drawBtn">وضع الطمس/الرسم</button>
             <button id="rectangleEraseBtn" type="button">مسح بمستطيل</button>
+            <button id="cropImageBtn" type="button" disabled>قص الصورة</button>
+            <div id="cropActions" class="crop-actions hidden">
+                <button id="applyCropBtn" type="button">تطبيق القص</button>
+                <button id="cancelCropBtn" type="button">إلغاء</button>
+            </div>
+            <p id="cropStatus" class="hidden" role="status"></p>
             <div id="brushSettings" class="hidden flex-col gap-2">
                 <label id="colorLabel" for="brushColor">لون الفرشاة:</label>
                 <input type="color" id="brushColor" value="#ffffff" class="w-full">
@@ -579,9 +704,22 @@
                     <input type="text" id="textColorHex" class="hex-color-input text-hex-color-input" value="#183238" maxlength="7" autocomplete="off" spellcheck="false" aria-label="كود لون النص">
                 </div>
                 <button id="sampleTextColorBtn" type="button">التقاط لون من الصورة</button>
+                <button id="formatPainterBtn" type="button" disabled>نسخ التنسيق</button>
                 <p id="textPropertyStatus" class="hidden" role="status"></p>
             </div>
             <p id="editTextHint" class="hidden" role="status"></p>
+            <details id="objectTools" class="tool-group">
+                <summary id="objectToolsTitle">ترتيب العناصر</summary>
+                <div class="tool-grid">
+                    <button id="duplicateObjectBtn" class="tool-action" type="button" disabled><span aria-hidden="true">⧉</span><span id="duplicateObjectLabel">تكرار</span></button>
+                    <button id="deleteObjectBtn" class="tool-action" type="button" disabled><span aria-hidden="true">×</span><span id="deleteObjectLabel">حذف</span></button>
+                    <button id="bringForwardBtn" class="tool-action" type="button" disabled><span aria-hidden="true">↑</span><span id="bringForwardLabel">إحضار للأمام</span></button>
+                    <button id="sendBackwardBtn" class="tool-action" type="button" disabled><span aria-hidden="true">↓</span><span id="sendBackwardLabel">إرسال للخلف</span></button>
+                    <button id="rotateObjectBtn" class="tool-action" type="button" disabled><span aria-hidden="true">↻</span><span id="rotateObjectLabel">تدوير 90°</span></button>
+                    <button id="flipHorizontalBtn" class="tool-action" type="button" disabled><span aria-hidden="true">⇆</span><span id="flipHorizontalLabel">قلب أفقي</span></button>
+                    <button id="flipVerticalBtn" class="tool-action" type="button" disabled><span aria-hidden="true">⇅</span><span id="flipVerticalLabel">قلب رأسي</span></button>
+                </div>
+            </details>
         </aside>
 
         <section id="workspace" class="workspace" aria-label="مساحة تعديل الصورة">
@@ -606,6 +744,7 @@
         let currentImageData = null;
         let imageScale = 1;
         let tesseractPromise = null;
+        let tesseractWorkerPromise = null;
         let ocrWords = [];
         let ocrObjects = [];
         let ocrSourceCanvas = null;
@@ -614,14 +753,17 @@
         let activePageIndex = 0;
         let rectangleInProgress = null;
         let isRectMaskMode = false;
-        let imageWorkspaceState = null;
-        let pdfWorkspaceState = null;
-        let activeWorkspaceMode = 'image';
-        let pdfLibraryPromise = null;
-        let jsPdfLibraryPromise = null;
-        let pdfFileName = 'edited-document';
+        let isCropMode = false;
+        let cropFrame = null;
+        let cropShadeObjects = [];
+        let cropObjectStates = [];
+        let cropPreviousModes = null;
+        let cropFrameHandlers = null;
         let isPickingTextColor = false;
         let textColorTarget = null;
+        let textStyleClipboard = null;
+        let textStyleSource = null;
+        let isFormatPainterArmed = false;
         let canvasTouchStart = null;
         let lastCanvasTouchAt = 0;
         
@@ -637,18 +779,12 @@
                 workspace: "مساحة تعديل الصورة",
                 arabicFonts: "خطوط عربية",
                 latinFonts: "خطوط لاتينية",
-                modeMenu: "الملفات",
-                imageMode: "تعديل الصور",
-                uploadPdf: "رفع / تعديل PDF",
+                modeMenu: "الصور",
                 uploadImage: "رفع صورة",
-                pdfMode: "تعديل PDF",
-                downloadPdf: "تحميل PDF",
-                recognizePdfText: "اكتشاف نصوص وأرقام PDF",
-                pdfLoading: "جارٍ تجهيز ملف PDF...",
-                pdfPageProgress: "جارٍ تجهيز صفحة PDF ",
-                pdfRenderTimeout: "استغرق تجهيز إحدى صفحات PDF وقتًا طويلًا. جرّب تقسيم الملف أو استخدام نسخة أصغر.",
-                pdfLoadError: "تعذر فتح PDF. تأكد من صحة الملف وحاول مرة أخرى.",
-                pdfDownloadError: "تعذر إنشاء ملف PDF.",
+                uploadPdf: "رفع ملف PDF",
+                pdfLoading: "جارٍ تحميل صفحات PDF...",
+                pdfError: "تعذر فتح ملف PDF. تحقق من سلامة الملف وحاول مرة أخرى.",
+                addOverlayImage: "إضافة صورة للصفحة",
                 addPage: "إضافة صفحة جديدة",
                 page: "صفحة",
                 pages: "صفحات العمل",
@@ -664,6 +800,13 @@
                 drawActive: "إيقاف الرسم",
                 rectangleErase: "مسح بمستطيل",
                 rectangleEraseActive: "إيقاف المسح بالمستطيل",
+                    cropImage: "قص الصورة",
+                    cropImageActive: "تعديل إطار القص",
+                    applyCrop: "تطبيق القص",
+                    cancelCrop: "إلغاء",
+                    cropHint: "اسحب الإطار أو مقابضه لتحديد الجزء المطلوب",
+                    cropNoImage: "ارفع صورة أساسية أولًا لبدء القص.",
+                    cropTooSmall: "إطار القص صغير جدًا. وسّعه ثم حاول مرة أخرى.",
                 color: "لون الفرشاة:",
                 colorCode: "كود اللون:",
                 size: "حجم الفرشاة:",
@@ -676,16 +819,28 @@
                 selectTextFirst: "حدد نصًا أو رقمًا أولًا لتغيير تنسيقه.",
                 textColor: "لون النص:",
                 sampleTextColor: "التقاط لون من الصورة",
+                copyTextFormat: "نسخ التنسيق",
+                cancelTextFormat: "إلغاء فرشاة التنسيق",
+                formatTextHint: "انقر على نص آخر لتطبيق التنسيق",
                 sampleColorHint: "انقر على لون من الصورة لاستخدامه للنص المحدد.",
-                sampleColorError: "حدد نصًا أولًا واختر صورة أو صفحة PDF.",
+                sampleColorError: "حدد نصًا وارفع صورة أولًا.",
                 editPrompt: "انقر مرة على النص",
                 editHint: "انقر مرة على كلمة مكتشفة أو مرتين لتحديد عبارتها وتعديلها. نص الصورة غير المكتشف لا يمكن تحديده.",
                 download: "تنزيل الصورة",
+                downloadPdf: "تنزيل كـ PDF",
                 undo: "تراجع",
                 redo: "إعادة",
                 history: "سجل التعديلات",
                 emptyTitle: "ابدأ بصورة جديدة",
                 emptyUpload: "رفع صورة",
+                objectTools: "ترتيب العناصر",
+                duplicateObject: "تكرار",
+                deleteObject: "حذف",
+                bringForward: "إحضار للأمام",
+                sendBackward: "إرسال للخلف",
+                rotateObject: "تدوير 90°",
+                flipHorizontal: "قلب أفقي",
+                flipVertical: "قلب رأسي",
                 lang: "English",
                 newTextStr: "اكتب النص هنا"
             },
@@ -699,18 +854,12 @@
                 workspace: "Image editing workspace",
                 arabicFonts: "Arabic fonts",
                 latinFonts: "Latin fonts",
-                modeMenu: "Files",
-                imageMode: "Edit images",
-                uploadPdf: "Upload / edit PDF",
+                modeMenu: "Images",
                 uploadImage: "Upload image",
-                pdfMode: "Edit PDF",
-                downloadPdf: "Download PDF",
-                recognizePdfText: "Detect PDF text and numbers",
-                pdfLoading: "Preparing PDF...",
-                pdfPageProgress: "Preparing PDF page ",
-                pdfRenderTimeout: "A PDF page took too long to prepare. Try splitting the file or using a smaller copy.",
-                pdfLoadError: "Could not open the PDF. Check the file and try again.",
-                pdfDownloadError: "Could not create the PDF.",
+                uploadPdf: "Upload PDF",
+                pdfLoading: "Loading PDF pages...",
+                pdfError: "Could not open this PDF. Check the file and try again.",
+                addOverlayImage: "Add image to page",
                 addPage: "Add new page",
                 page: "Page",
                 pages: "Workspace pages",
@@ -726,6 +875,13 @@
                 drawActive: "Stop drawing",
                 rectangleErase: "Rectangle eraser",
                 rectangleEraseActive: "Stop rectangle eraser",
+                    cropImage: "Crop image",
+                    cropImageActive: "Adjust crop frame",
+                    applyCrop: "Apply crop",
+                    cancelCrop: "Cancel",
+                    cropHint: "Drag the frame or its handles to choose the crop area",
+                    cropNoImage: "Upload a base image before cropping.",
+                    cropTooSmall: "The crop area is too small. Enlarge it and try again.",
                 color: "Brush Color:",
                 colorCode: "Color code:",
                 size: "Brush Size:",
@@ -738,16 +894,28 @@
                 selectTextFirst: "Select a text or number to change its formatting.",
                 textColor: "Text color:",
                 sampleTextColor: "Pick color from image",
+                copyTextFormat: "Copy text format",
+                cancelTextFormat: "Cancel format painter",
+                formatTextHint: "Click another text to apply the format",
                 sampleColorHint: "Click a color in the image to apply it to the selected text.",
-                sampleColorError: "Select text and load an image or PDF page first.",
+                sampleColorError: "Select text and upload an image first.",
                 editPrompt: "Click a text object",
                 editHint: "Click a detected word once, or twice to select and edit its phrase. Unrecognized image text cannot be selected.",
                 download: "Download image",
+                downloadPdf: "Download as PDF",
                 undo: "Undo",
                 redo: "Redo",
                 history: "Edit history",
                 emptyTitle: "Start with an image",
                 emptyUpload: "Upload image",
+                objectTools: "Arrange objects",
+                duplicateObject: "Duplicate",
+                deleteObject: "Delete",
+                bringForward: "Bring forward",
+                sendBackward: "Send backward",
+                rotateObject: "Rotate 90°",
+                flipHorizontal: "Flip horizontal",
+                flipVertical: "Flip vertical",
                 lang: "عربي",
                 newTextStr: "Type your text here"
             }
@@ -798,8 +966,8 @@
             updateHistoryButtons();
         }
 
-        function scheduleCanvasHistoryCapture() {
-            if (isRestoringCanvas) return;
+        function scheduleCanvasHistoryCapture(event) {
+            if (isRestoringCanvas || (isCropMode && (event?.target === cropFrame || cropShadeObjects.includes(event?.target)))) return;
             clearTimeout(historyCaptureTimer);
             historyCaptureTimer = setTimeout(() => {
                 historyCaptureTimer = null;
@@ -866,9 +1034,33 @@
         }
 
         function handleHistoryShortcut(event) {
-            if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+            if (isCropMode) {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancelCropMode();
+                } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    applyCropSelection();
+                }
+                return;
+            }
+            if (event.key === 'Escape' && isFormatPainterArmed) {
+                event.preventDefault();
+                cancelTextFormatPainter();
+                return;
+            }
             const target = event.target;
             const isCanvasTextInput = target === canvas.getActiveObject()?.hiddenTextarea;
+            if ((event.key === 'Delete' || event.key === 'Backspace') && !event.ctrlKey && !event.metaKey && !event.altKey && !isCanvasTextInput) {
+                if (target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName))) return;
+                const activeObject = canvas.getActiveObject();
+                if (activeObject && !activeObject.isEditing) {
+                    event.preventDefault();
+                    deleteSelectedObject();
+                    return;
+                }
+            }
+            if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
             if (target instanceof HTMLElement && (target.isContentEditable ||
                 (/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName) && !isCanvasTextInput))) return;
 
@@ -931,8 +1123,11 @@
             canvas.on('selection:created', updateTextProperties);
             canvas.on('selection:updated', updateTextProperties);
             canvas.on('selection:cleared', updateTextProperties);
+            bindObjectTools();
             canvas.on('object:added', updateEmptyState);
             canvas.on('object:removed', updateEmptyState);
+            canvas.on('object:added', updateCropButtonState);
+            canvas.on('object:removed', updateCropButtonState);
             document.getElementById('emptyUploadBtn').addEventListener('click', () => {
                 document.getElementById('uploadImageBtn').click();
             });
@@ -950,12 +1145,12 @@
                 rectangleMode: false,
                 drawingMode: false
             }];
-            imageWorkspaceState = { pages, activePageIndex };
             setupRectangleDrawing();
             bindCanvasHistory();
             initializePageHistory(pages[0]);
             renderPageTabs();
             updateEmptyState();
+            updateCropButtonState();
             fitCanvasToWorkspace();
             window.addEventListener('resize', fitCanvasToWorkspace);
         };
@@ -1016,6 +1211,8 @@
             const properties = document.getElementById('textProperties');
             if (!properties || !canvas) return;
             const text = canvas.getActiveObject();
+            updateObjectToolAvailability(text);
+            updateFormatPainterButton(text);
             const canReplaceDetectedText = text instanceof fabric.IText && text.isOcrText && !text.ocrCommitted && text.ocrWordData;
             document.getElementById('replaceTextBtn').classList.toggle('hidden', !canReplaceDetectedText);
             if (!(text instanceof fabric.IText)) {
@@ -1034,6 +1231,159 @@
             document.getElementById('textColorInput').value = textColor;
             document.getElementById('textColorHex').value = textColor;
         }
+
+        function updateObjectToolAvailability(activeObject = canvas?.getActiveObject()) {
+            const hasObject = Boolean(!isCropMode && activeObject && canvas?.getObjects().includes(activeObject));
+            const objects = hasObject ? canvas.getObjects() : [];
+            const index = hasObject ? objects.indexOf(activeObject) : -1;
+            document.getElementById('duplicateObjectBtn').disabled = !hasObject;
+            document.getElementById('deleteObjectBtn').disabled = !hasObject;
+            document.getElementById('bringForwardBtn').disabled = !hasObject || index >= objects.length - 1;
+            document.getElementById('sendBackwardBtn').disabled = !hasObject || index <= 0;
+            document.getElementById('rotateObjectBtn').disabled = !hasObject;
+            document.getElementById('flipHorizontalBtn').disabled = !hasObject;
+            document.getElementById('flipVerticalBtn').disabled = !hasObject;
+        }
+
+        function finishObjectEdit(object) {
+            object.setCoords();
+            canvas.setActiveObject(object);
+            canvas.requestRenderAll();
+            updateTextProperties();
+            scheduleCanvasHistoryCapture();
+        }
+
+        function duplicateSelectedObject() {
+            const source = canvas.getActiveObject();
+            if (!source || !canvas.getObjects().includes(source)) return Promise.resolve(null);
+            if (source.isOcrText && !source.ocrCommitted) commitOcrText(source);
+            const originalIndex = canvas.getObjects().indexOf(source);
+            return new Promise(resolve => {
+                source.clone(clone => {
+                    clone.set({ left: source.left + 20, top: source.top + 20, isOcrText: false, ocrCommitted: false });
+                    delete clone.ocrWordData;
+                    canvas.insertAt(clone, originalIndex + 1);
+                    canvas.setActiveObject(clone);
+                    finishObjectEdit(clone);
+                    resolve(clone);
+                }, ['isOcrText', 'ocrCommitted', 'ocrWordData']);
+            });
+        }
+
+        function deleteSelectedObject() {
+            const object = canvas.getActiveObject();
+            if (!object || !canvas.getObjects().includes(object)) return;
+            if (object.isOcrText && !object.ocrCommitted && object.ocrWordData && !ocrWords.includes(object.ocrWordData)) {
+                ocrWords.push(object.ocrWordData);
+            }
+            canvas.remove(object);
+            ocrObjects = ocrObjects.filter(ocrObject => ocrObject !== object);
+            canvas.discardActiveObject();
+            updateTextProperties();
+            canvas.requestRenderAll();
+            scheduleCanvasHistoryCapture();
+        }
+
+        function moveSelectedObjectInStack(direction) {
+            const object = canvas.getActiveObject();
+            if (!object || !canvas.getObjects().includes(object)) return;
+            const objects = canvas.getObjects();
+            const index = objects.indexOf(object);
+            const targetIndex = Math.max(0, Math.min(objects.length - 1, index + direction));
+            if (targetIndex === index) return;
+            canvas.moveTo(object, targetIndex);
+            finishObjectEdit(object);
+        }
+
+        function transformSelectedObject(transform) {
+            const object = canvas.getActiveObject();
+            if (!object || !canvas.getObjects().includes(object)) return;
+            const center = object.getCenterPoint();
+            transform(object);
+            object.setPositionByOrigin(center, 'center', 'center');
+            finishObjectEdit(object);
+        }
+
+        function bindObjectTools() {
+            document.getElementById('duplicateObjectBtn').addEventListener('click', duplicateSelectedObject);
+            document.getElementById('deleteObjectBtn').addEventListener('click', deleteSelectedObject);
+            document.getElementById('bringForwardBtn').addEventListener('click', () => moveSelectedObjectInStack(1));
+            document.getElementById('sendBackwardBtn').addEventListener('click', () => moveSelectedObjectInStack(-1));
+            document.getElementById('rotateObjectBtn').addEventListener('click', () => {
+                transformSelectedObject(object => object.rotate((object.angle || 0) + 90));
+            });
+            document.getElementById('flipHorizontalBtn').addEventListener('click', () => {
+                transformSelectedObject(object => object.set('flipX', !object.flipX));
+            });
+            document.getElementById('flipVerticalBtn').addEventListener('click', () => {
+                transformSelectedObject(object => object.set('flipY', !object.flipY));
+            });
+        }
+
+        function updateFormatPainterButton(activeText = canvas?.getActiveObject()) {
+            const button = document.getElementById('formatPainterBtn');
+            if (!button) return;
+            const hasText = activeText instanceof fabric.IText;
+            const lang = isArabic ? 'ar' : 'en';
+            button.disabled = !hasText;
+            button.textContent = translations[lang][isFormatPainterArmed ? 'cancelTextFormat' : 'copyTextFormat'];
+            button.title = isFormatPainterArmed ? translations[lang].formatTextHint : button.textContent;
+            button.setAttribute('aria-label', button.textContent);
+            button.classList.toggle('is-ready', isFormatPainterArmed);
+        }
+
+        function copyTextFormat(text) {
+            const fill = text.isOcrText && !text.ocrCommitted ? text.ocrWordData?.textColor : text.fill;
+            textStyleClipboard = {
+                fontFamily: text.fontFamily,
+                fontSize: text.fontSize,
+                fontWeight: text.fontWeight,
+                fontStyle: text.fontStyle,
+                underline: text.underline,
+                linethrough: text.linethrough,
+                overline: text.overline,
+                textAlign: text.textAlign,
+                lineHeight: text.lineHeight,
+                charSpacing: text.charSpacing,
+                fill,
+                stroke: text.stroke,
+                strokeWidth: text.strokeWidth,
+                opacity: text.opacity
+            };
+            textStyleSource = text;
+            isFormatPainterArmed = true;
+            updateFormatPainterButton(text);
+        }
+
+        function cancelTextFormatPainter() {
+            textStyleClipboard = null;
+            textStyleSource = null;
+            isFormatPainterArmed = false;
+            updateFormatPainterButton();
+        }
+
+        function applyCopiedTextFormat(text) {
+            if (!(text instanceof fabric.IText) || !textStyleClipboard) return;
+            commitOcrText(text);
+            text.set({ ...textStyleClipboard });
+            text.initDimensions();
+            text.setCoords();
+            canvas.setActiveObject(text);
+            canvas.renderAll();
+            cancelTextFormatPainter();
+            updateTextProperties();
+            scheduleCanvasHistoryCapture();
+        }
+
+        document.getElementById('formatPainterBtn').addEventListener('click', () => {
+            const text = canvas.getActiveObject();
+            if (!(text instanceof fabric.IText)) return;
+            if (isFormatPainterArmed) {
+                cancelTextFormatPainter();
+                return;
+            }
+            copyTextFormat(text);
+        });
 
         function cancelTextColorSampling() {
             isPickingTextColor = false;
@@ -1116,12 +1466,6 @@
             page.drawingMode = canvas.isDrawingMode;
         }
 
-        function syncActiveWorkspaceState() {
-            const state = { pages, activePageIndex };
-            if (activeWorkspaceMode === 'pdf') pdfWorkspaceState = state;
-            else imageWorkspaceState = state;
-        }
-
         function restoreOcrSource(sourceData) {
             ocrSourceCanvas = null;
             ocrSourceContext = null;
@@ -1140,10 +1484,10 @@
 
         function switchToPage(index) {
             if (index === activePageIndex || !pages[index]) return;
+            if (isCropMode) cancelCropMode();
             flushCanvasHistoryCapture();
             saveActivePage();
             restorePageAtIndex(index);
-            syncActiveWorkspaceState();
         }
 
         function restorePageAtIndex(index) {
@@ -1175,10 +1519,10 @@
                 canvas.skipTargetFind = isRectMaskMode;
                 canvas.selection = !isRectMaskMode;
                 canvas.upperCanvasEl.style.touchAction = isRectMaskMode || page.rectangleMode ? 'none' : 'manipulation';
-                document.getElementById('recognizePdfBtn').disabled = activeWorkspaceMode !== 'pdf';
                 isRestoringCanvas = false;
                 initializePageHistory(page);
                 updateEmptyState();
+                updateCropButtonState();
                 canvas.renderAll();
                 renderPageTabs();
                 fitCanvasToWorkspace();
@@ -1187,6 +1531,7 @@
         }
 
         function addNewPage() {
+            if (isCropMode) cancelCropMode();
             saveActivePage();
             const page = {
                 json: null,
@@ -1216,10 +1561,10 @@
             canvas.setHeight(page.height);
             canvas.setBackgroundColor('#ffffff', () => {
                 page.json = canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']);
-                syncActiveWorkspaceState();
                 isRestoringCanvas = false;
                 initializePageHistory(page);
                 updateEmptyState();
+                updateCropButtonState();
                 renderPageTabs();
                 fitCanvasToWorkspace();
             });
@@ -1228,213 +1573,276 @@
             document.getElementById('drawBtn').classList.remove('is-active');
             document.getElementById('drawBtn').textContent = translations[isArabic ? 'ar' : 'en'].draw;
             document.getElementById('editTextHint').classList.add('hidden');
-            syncActiveWorkspaceState();
         }
 
-        function loadPdfJs() {
-            if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-            if (pdfLibraryPromise) return pdfLibraryPromise;
+        function updateCropButtonState() {
+            const button = document.getElementById('cropImageBtn');
+            if (!button) return;
+            const lang = isArabic ? 'ar' : 'en';
+            button.disabled = !isCropMode && !canvas?.backgroundImage;
+            button.classList.toggle('is-active', isCropMode);
+            button.textContent = translations[lang][isCropMode ? 'cropImageActive' : 'cropImage'];
+            document.getElementById('cropActions').classList.toggle('hidden', !isCropMode);
+            document.getElementById('cropStatus').classList.toggle('hidden', !isCropMode);
+            document.getElementById('cropStatus').textContent = isCropMode ? translations[lang].cropHint : '';
+            document.getElementById('applyCropBtn').disabled = !cropFrame || cropFrame.getScaledWidth() < 24 || cropFrame.getScaledHeight() < 24;
+        }
 
-            pdfLibraryPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-                script.onload = () => resolve(window.pdfjsLib);
-                script.onerror = reject;
-                document.head.appendChild(script);
+        function syncCropShade() {
+            if (!isCropMode || !cropFrame || cropShadeObjects.length !== 4) return;
+            const left = Math.max(0, cropFrame.left);
+            const top = Math.max(0, cropFrame.top);
+            const right = Math.min(canvas.getWidth(), cropFrame.left + cropFrame.getScaledWidth());
+            const bottom = Math.min(canvas.getHeight(), cropFrame.top + cropFrame.getScaledHeight());
+            const regions = [
+                { left: 0, top: 0, width: canvas.getWidth(), height: top },
+                { left: 0, top, width: left, height: Math.max(0, bottom - top) },
+                { left: right, top, width: Math.max(0, canvas.getWidth() - right), height: Math.max(0, bottom - top) },
+                { left: 0, top: bottom, width: canvas.getWidth(), height: Math.max(0, canvas.getHeight() - bottom) }
+            ];
+            cropShadeObjects.forEach((shade, index) => {
+                shade.set(regions[index]);
+                shade.setCoords();
             });
-            return pdfLibraryPromise;
+            cropFrame.setCoords();
+            updateCropButtonState();
+            canvas.requestRenderAll();
         }
 
-        function loadJsPdf() {
-            if (window.jspdf?.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
-            if (jsPdfLibraryPromise) return jsPdfLibraryPromise;
+        function startCropMode() {
+            if (isCropMode) {
+                cancelCropMode();
+                return;
+            }
+            const background = canvas.backgroundImage;
+            if (!background) return;
+            flushCanvasHistoryCapture();
+            cancelTextColorSampling();
+            if (isFormatPainterArmed) cancelTextFormatPainter();
 
-            jsPdfLibraryPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-                script.onload = () => resolve(window.jspdf?.jsPDF);
-                script.onerror = reject;
-                document.head.appendChild(script);
+            cropPreviousModes = {
+                drawingMode: canvas.isDrawingMode,
+                rectangleMode: isRectMaskMode,
+                selection: canvas.selection,
+                skipTargetFind: canvas.skipTargetFind,
+                touchAction: canvas.upperCanvasEl.style.touchAction
+            };
+            cropObjectStates = canvas.getObjects().map(object => ({
+                object,
+                selectable: object.selectable,
+                evented: object.evented
+            }));
+            cropObjectStates.forEach(state => {
+                if (state.object.isEditing) state.object.exitEditing();
+                state.object.set({ selectable: false, evented: false });
             });
-            return jsPdfLibraryPromise;
-        }
+            canvas.discardActiveObject();
+            canvas.isDrawingMode = false;
+            isRectMaskMode = false;
+            canvas.selection = false;
+            canvas.skipTargetFind = false;
+            canvas.upperCanvasEl.style.touchAction = 'none';
+            document.getElementById('brushSettings').style.display = 'none';
+            document.getElementById('drawBtn').classList.remove('is-active');
+            document.getElementById('drawBtn').textContent = translations[isArabic ? 'ar' : 'en'].draw;
+            document.getElementById('rectangleEraseBtn').classList.remove('is-active');
+            document.getElementById('rectangleEraseBtn').textContent = translations[isArabic ? 'ar' : 'en'].rectangleErase;
+            updateCropButtonState();
 
-        function createFabricPageState(imageData, width, height) {
-            return new Promise((resolve, reject) => {
-                const stagingCanvas = new fabric.StaticCanvas(null, {
-                    width,
-                    height,
-                    backgroundColor: '#ffffff'
-                });
-                fabric.Image.fromURL(imageData, image => {
-                    if (!image) {
-                        stagingCanvas.dispose();
-                        reject(new Error('Could not create the PDF page image.'));
-                        return;
-                    }
-                    stagingCanvas.setBackgroundImage(image, () => {
-                        const pageJson = stagingCanvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']);
-                        stagingCanvas.dispose();
-                        resolve(pageJson);
-                    }, { scaleX: 1, scaleY: 1 });
-                });
+            const imageLeft = background.left || 0;
+            const imageTop = background.top || 0;
+            const imageWidth = (background.width || canvas.getWidth()) * (background.scaleX || 1);
+            const imageHeight = (background.height || canvas.getHeight()) * (background.scaleY || 1);
+            const insetX = 0;
+            const insetY = 0;
+            cropFrame = new fabric.Rect({
+                left: imageLeft + insetX,
+                top: imageTop + insetY,
+                width: Math.max(24, imageWidth - insetX * 2),
+                height: Math.max(24, imageHeight - insetY * 2),
+                fill: 'rgba(255, 255, 255, 0.025)',
+                stroke: '#ffffff',
+                strokeWidth: 2,
+                strokeUniform: true,
+                cornerColor: '#ffffff',
+                cornerStrokeColor: '#087f96',
+                cornerStyle: 'circle',
+                cornerSize: 13,
+                transparentCorners: false,
+                borderColor: '#087f96',
+                borderScaleFactor: 2,
+                lockRotation: true,
+                lockScalingFlip: true,
+                objectCaching: false,
+                excludeFromExport: true,
+                cropFrame: true
             });
+            cropShadeObjects = Array.from({ length: 4 }, () => new fabric.Rect({
+                left: 0,
+                top: 0,
+                width: 1,
+                height: 1,
+                fill: 'rgba(12, 24, 38, 0.48)',
+                strokeWidth: 0,
+                selectable: false,
+                evented: false,
+                excludeFromExport: true,
+                objectCaching: false
+            }));
+
+            isCropMode = true;
+            isRestoringCanvas = true;
+            cropShadeObjects.forEach(shade => canvas.add(shade));
+            canvas.add(cropFrame);
+            isRestoringCanvas = false;
+            cropFrameHandlers = { sync: syncCropShade };
+            cropFrame.on('moving', cropFrameHandlers.sync);
+            cropFrame.on('scaling', cropFrameHandlers.sync);
+            cropFrame.on('modified', cropFrameHandlers.sync);
+            canvas.setActiveObject(cropFrame);
+            syncCropShade();
+            updateObjectToolAvailability();
         }
 
-        function yieldToBrowser() {
-            return new Promise(resolve => setTimeout(resolve, 0));
-        }
-
-        function renderPdfPage(pdfPage, renderContext, viewport) {
-            const renderTask = pdfPage.render({ canvasContext: renderContext, viewport });
-            renderTask.onContinue = continueRendering => setTimeout(continueRendering, 0);
-            let timeoutId;
-            const timeout = new Promise((resolve, reject) => {
-                timeoutId = setTimeout(() => {
-                    reject(new Error('PDF_PAGE_RENDER_TIMEOUT'));
-                    renderTask.cancel();
-                }, 20000);
+        function stopCropMode() {
+            if (!isCropMode) return;
+            isRestoringCanvas = true;
+            if (cropFrame && cropFrameHandlers) {
+                cropFrame.off('moving', cropFrameHandlers.sync);
+                cropFrame.off('scaling', cropFrameHandlers.sync);
+                cropFrame.off('modified', cropFrameHandlers.sync);
+            }
+            if (cropFrame) canvas.remove(cropFrame);
+            cropShadeObjects.forEach(shade => canvas.remove(shade));
+            cropObjectStates.forEach(state => {
+                if (canvas.getObjects().includes(state.object)) {
+                    state.object.set({ selectable: state.selectable, evented: state.evented });
+                }
             });
-            return Promise.race([renderTask.promise, timeout]).finally(() => clearTimeout(timeoutId));
+            cropFrame = null;
+            cropShadeObjects = [];
+            cropObjectStates = [];
+            cropFrameHandlers = null;
+            isCropMode = false;
+            if (cropPreviousModes) {
+                canvas.isDrawingMode = cropPreviousModes.drawingMode;
+                isRectMaskMode = cropPreviousModes.rectangleMode;
+                canvas.selection = cropPreviousModes.selection;
+                canvas.skipTargetFind = cropPreviousModes.skipTargetFind;
+                canvas.upperCanvasEl.style.touchAction = cropPreviousModes.touchAction;
+            }
+            cropPreviousModes = null;
+            isRestoringCanvas = false;
+            document.getElementById('drawBtn').classList.toggle('is-active', canvas.isDrawingMode);
+            document.getElementById('drawBtn').textContent = translations[isArabic ? 'ar' : 'en'][canvas.isDrawingMode ? 'drawActive' : 'draw'];
+            document.getElementById('rectangleEraseBtn').classList.toggle('is-active', isRectMaskMode);
+            document.getElementById('rectangleEraseBtn').textContent = translations[isArabic ? 'ar' : 'en'][isRectMaskMode ? 'rectangleEraseActive' : 'rectangleErase'];
+            document.getElementById('brushSettings').style.display = (canvas.isDrawingMode || isRectMaskMode) ? 'flex' : 'none';
+            canvas.discardActiveObject();
+            updateCropButtonState();
+            updateTextProperties();
+            canvas.requestRenderAll();
         }
 
-        function saveCurrentWorkspace() {
+        function cancelCropMode() {
+            stopCropMode();
+        }
+
+        document.getElementById('cropImageBtn').addEventListener('click', startCropMode);
+        document.getElementById('applyCropBtn').addEventListener('click', applyCropSelection);
+        document.getElementById('cancelCropBtn').addEventListener('click', cancelCropMode);
+
+        async function applyCropSelection() {
+            if (!isCropMode || !cropFrame || !canvas.backgroundImage) return;
+            const frameBounds = {
+                left: cropFrame.left,
+                top: cropFrame.top,
+                right: cropFrame.left + cropFrame.getScaledWidth(),
+                bottom: cropFrame.top + cropFrame.getScaledHeight()
+            };
+            const background = canvas.backgroundImage;
+            const source = background.getElement();
+            const sourceWidth = source.naturalWidth || source.width;
+            const sourceHeight = source.naturalHeight || source.height;
+            const scaleX = background.scaleX || 1;
+            const scaleY = background.scaleY || 1;
+            const backgroundLeft = background.left || 0;
+            const backgroundTop = background.top || 0;
+            const sourceLeft = Math.max(0, Math.floor((frameBounds.left - backgroundLeft) / scaleX));
+            const sourceTop = Math.max(0, Math.floor((frameBounds.top - backgroundTop) / scaleY));
+            const sourceRight = Math.min(sourceWidth, Math.ceil((frameBounds.right - backgroundLeft) / scaleX));
+            const sourceBottom = Math.min(sourceHeight, Math.ceil((frameBounds.bottom - backgroundTop) / scaleY));
+            const croppedWidth = sourceRight - sourceLeft;
+            const croppedHeight = sourceBottom - sourceTop;
+            if (croppedWidth < 24 || croppedHeight < 24) {
+                document.getElementById('cropStatus').textContent = translations[isArabic ? 'ar' : 'en'].cropTooSmall;
+                return;
+            }
+
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = croppedWidth;
+            cropCanvas.height = croppedHeight;
+            cropCanvas.getContext('2d').drawImage(source, sourceLeft, sourceTop, croppedWidth, croppedHeight, 0, 0, croppedWidth, croppedHeight);
+            const croppedImageData = cropCanvas.toDataURL('image/png');
+            const pageCropLeft = backgroundLeft + sourceLeft * scaleX;
+            const pageCropTop = backgroundTop + sourceTop * scaleY;
+            const nextWidth = Math.max(1, Math.round(croppedWidth * scaleX));
+            const nextHeight = Math.max(1, Math.round(croppedHeight * scaleY));
+
+            stopCropMode();
+            isRestoringCanvas = true;
+            const visibleRight = pageCropLeft + nextWidth;
+            const visibleBottom = pageCropTop + nextHeight;
+            const removedObjects = new Set();
+            canvas.getObjects().slice().forEach(object => {
+                const bounds = object.getBoundingRect(true, true);
+                const intersectsCrop = bounds.left < visibleRight && bounds.left + bounds.width > pageCropLeft &&
+                    bounds.top < visibleBottom && bounds.top + bounds.height > pageCropTop;
+                if (!intersectsCrop) {
+                    if (object.isOcrText && object.ocrWordData) removedObjects.add(object);
+                    canvas.remove(object);
+                    return;
+                }
+                object.set({ left: object.left - pageCropLeft, top: object.top - pageCropTop });
+                if (object.isOcrText && object.ocrWordData) {
+                    const boundsData = object.ocrWordData.bbox;
+                    boundsData.x0 -= sourceLeft;
+                    boundsData.x1 -= sourceLeft;
+                    boundsData.y0 -= sourceTop;
+                    boundsData.y1 -= sourceTop;
+                }
+                object.setCoords();
+            });
+            ocrObjects = ocrObjects.filter(object => !removedObjects.has(object));
+            ocrWords = ocrWords.filter(word => {
+                const bounds = word.bbox;
+                const visible = bounds.x0 < sourceRight && bounds.x1 > sourceLeft && bounds.y0 < sourceBottom && bounds.y1 > sourceTop;
+                if (!visible) return false;
+                bounds.x0 = Math.max(0, bounds.x0 - sourceLeft);
+                bounds.x1 = Math.min(croppedWidth, bounds.x1 - sourceLeft);
+                bounds.y0 = Math.max(0, bounds.y0 - sourceTop);
+                bounds.y1 = Math.min(croppedHeight, bounds.y1 - sourceTop);
+                return true;
+            });
+
+            currentImageData = croppedImageData;
+            imageScale = scaleX;
+            ocrSourceCanvas = cropCanvas;
+            ocrSourceContext = cropCanvas.getContext('2d', { willReadFrequently: true });
+            canvas.setWidth(nextWidth);
+            canvas.setHeight(nextHeight);
+            await new Promise(resolve => fabric.Image.fromURL(croppedImageData, image => {
+                canvas.setBackgroundImage(image, () => {
+                    canvas.renderAll();
+                    resolve();
+                }, { scaleX, scaleY, left: 0, top: 0 });
+            }));
+            isRestoringCanvas = false;
+            fitCanvasToWorkspace();
+            updateEmptyState();
             saveActivePage();
-            syncActiveWorkspaceState();
-        }
-
-        function switchWorkspaceMode(mode) {
-            if (mode === activeWorkspaceMode) return;
-            const targetState = mode === 'pdf' ? pdfWorkspaceState : imageWorkspaceState;
-            if (!targetState) return;
-
-            saveCurrentWorkspace();
-            activeWorkspaceMode = mode;
-            pages = targetState.pages;
-            restorePageAtIndex(targetState.activePageIndex);
-            document.getElementById('modeMenu').open = false;
-        }
-
-        async function importPdf(file) {
-            const status = document.getElementById('ocrStatus');
-            const pdfButton = document.getElementById('pdfModeBtn');
-            const lang = isArabic ? 'ar' : 'en';
-            pdfButton.disabled = true;
-            status.textContent = translations[lang].pdfLoading;
-
-            try {
-                const pdfjs = await loadPdfJs();
-                pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                const pdfDocument = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
-                const importedPages = [];
-                const maxPagePixels = 3_000_000;
-
-                for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
-                    status.textContent = `${translations[lang].pdfPageProgress}${pageNumber} / ${pdfDocument.numPages}`;
-                    await yieldToBrowser();
-                    const pdfPage = await pdfDocument.getPage(pageNumber);
-                    const sourceViewport = pdfPage.getViewport({ scale: 1 });
-                    const renderScale = Math.min(2, Math.sqrt(maxPagePixels / (sourceViewport.width * sourceViewport.height)));
-                    const renderViewport = pdfPage.getViewport({ scale: renderScale });
-                    const renderCanvas = document.createElement('canvas');
-                    renderCanvas.width = Math.ceil(renderViewport.width);
-                    renderCanvas.height = Math.ceil(renderViewport.height);
-                    const renderContext = renderCanvas.getContext('2d', { alpha: false });
-                    await renderPdfPage(pdfPage, renderContext, renderViewport);
-
-                    const imageData = renderCanvas.toDataURL('image/jpeg', 0.96);
-                    const pageWidth = renderCanvas.width;
-                    const pageHeight = renderCanvas.height;
-                    const pageJson = await createFabricPageState(imageData, pageWidth, pageHeight);
-                    renderCanvas.width = 0;
-                    renderCanvas.height = 0;
-                    pdfPage.cleanup();
-                    importedPages.push({
-                        json: pageJson,
-                        width: pageWidth,
-                        height: pageHeight,
-                        imageData,
-                        imageScale: 1,
-                        ocrWords: [],
-                        ocrSourceData: null,
-                        rectangleMode: false,
-                        drawingMode: false,
-                        pdfWidthPoints: sourceViewport.width,
-                        pdfHeightPoints: sourceViewport.height
-                    });
-                    await yieldToBrowser();
-                }
-
-                saveCurrentWorkspace();
-                pdfWorkspaceState = { pages: importedPages, activePageIndex: 0 };
-                pdfFileName = file.name.replace(/\.pdf$/i, '') || 'edited-document';
-                activeWorkspaceMode = 'pdf';
-                pages = pdfWorkspaceState.pages;
-                status.textContent = '';
-                restorePageAtIndex(0);
-                document.getElementById('modeMenu').open = false;
-            } catch (error) {
-                status.textContent = error.message === 'PDF_PAGE_RENDER_TIMEOUT'
-                    ? translations[lang].pdfRenderTimeout
-                    : translations[lang].pdfLoadError;
-                if (error.message !== 'PDF_PAGE_RENDER_TIMEOUT' && error.name !== 'RenderingCancelledException') {
-                    console.error(error);
-                }
-            } finally {
-                pdfButton.disabled = false;
-            }
-        }
-
-        async function createPdfOutput() {
-            const JsPdf = await loadJsPdf();
-            if (!JsPdf) throw new Error('jsPDF did not load.');
-            saveCurrentWorkspace();
-            let outputPdf = null;
-
-            for (let index = 0; index < pages.length; index++) {
-                const page = pages[index];
-                const stagingCanvas = new fabric.StaticCanvas(null, { width: page.width, height: page.height });
-                await new Promise(resolve => stagingCanvas.loadFromJSON(page.json, resolve));
-                const imageData = stagingCanvas.toDataURL({ format: 'png', multiplier: 1 });
-                stagingCanvas.dispose();
-
-                const pageWidth = page.pdfWidthPoints || page.width * 0.75;
-                const pageHeight = page.pdfHeightPoints || page.height * 0.75;
-                if (!outputPdf) {
-                    outputPdf = new JsPdf({
-                        orientation: pageWidth > pageHeight ? 'landscape' : 'portrait',
-                        unit: 'pt',
-                        format: [pageWidth, pageHeight],
-                        compress: true
-                    });
-                } else {
-                    outputPdf.addPage([pageWidth, pageHeight], pageWidth > pageHeight ? 'landscape' : 'portrait');
-                }
-                outputPdf.addImage(imageData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-            }
-
-            if (!outputPdf) throw new Error('There are no pages to export.');
-            return outputPdf;
-        }
-
-        async function downloadPdf() {
-            const status = document.getElementById('ocrStatus');
-            const button = document.getElementById('downloadPdfBtn');
-            const lang = isArabic ? 'ar' : 'en';
-            button.disabled = true;
-            status.textContent = translations[lang].pdfLoading;
-
-            try {
-                const outputPdf = await createPdfOutput();
-                outputPdf.save(`${pdfFileName}.pdf`);
-                status.textContent = '';
-                document.getElementById('modeMenu').open = false;
-            } catch (error) {
-                status.textContent = translations[lang].pdfDownloadError;
-                console.error(error);
-            } finally {
-                button.disabled = false;
-            }
+            storeCanvasHistoryState();
+            updateCropButtonState();
         }
 
         function setupRectangleDrawing() {
@@ -1577,17 +1985,26 @@
             document.getElementById('arabicFontsGroup').label = translations[lang].arabicFonts;
             document.getElementById('latinFontsGroup').label = translations[lang].latinFonts;
             document.getElementById('modeMenuLabel').firstChild.nodeValue = translations[lang].modeMenu;
-            document.getElementById('imageModeBtn').textContent = translations[lang].imageMode;
             document.getElementById('uploadImageBtn').textContent = translations[lang].uploadImage;
-            document.getElementById('pdfModeBtn').textContent = translations[lang].uploadPdf;
-            document.getElementById('downloadPdfBtn').textContent = translations[lang].downloadPdf;
-            document.getElementById('recognizePdfBtn').textContent = translations[lang].recognizePdfText;
+            document.getElementById('uploadPdfBtn').textContent = translations[lang].uploadPdf;
+            document.getElementById('addOverlayImageBtn').textContent = translations[lang].addOverlayImage;
             document.getElementById('addPageBtn').textContent = translations[lang].addPage;
+            document.getElementById('objectToolsTitle').textContent = translations[lang].objectTools;
+            document.getElementById('duplicateObjectLabel').textContent = translations[lang].duplicateObject;
+            document.getElementById('deleteObjectLabel').textContent = translations[lang].deleteObject;
+            document.getElementById('bringForwardLabel').textContent = translations[lang].bringForward;
+            document.getElementById('sendBackwardLabel').textContent = translations[lang].sendBackward;
+            document.getElementById('rotateObjectLabel').textContent = translations[lang].rotateObject;
+            document.getElementById('flipHorizontalLabel').textContent = translations[lang].flipHorizontal;
+            document.getElementById('flipVerticalLabel').textContent = translations[lang].flipVertical;
             renderPageTabs();
             document.getElementById('recognizeTextBtn').textContent = translations[lang].recognizeText;
             if(!canvas.isDrawingMode) document.getElementById('drawBtn').textContent = translations[lang].draw;
             else document.getElementById('drawBtn').textContent = translations[lang].drawActive;
             document.getElementById('rectangleEraseBtn').textContent = translations[lang][isRectMaskMode ? 'rectangleEraseActive' : 'rectangleErase'];
+            document.getElementById('applyCropBtn').textContent = translations[lang].applyCrop;
+            document.getElementById('cancelCropBtn').textContent = translations[lang].cancelCrop;
+            updateCropButtonState();
             document.getElementById('colorLabel').textContent = translations[lang].color;
             document.getElementById('brushColorCodeLabel').textContent = translations[lang].colorCode;
             document.getElementById('sizeLabel').textContent = translations[lang].size;
@@ -1601,8 +2018,10 @@
             document.getElementById('textColorHex').setAttribute('aria-label', translations[lang].colorCode);
             document.getElementById('brushColorHex').setAttribute('aria-label', translations[lang].colorCode);
             document.getElementById('sampleTextColorBtn').textContent = translations[lang].sampleTextColor;
+            updateFormatPainterButton();
             if (isTextEditArmed) document.getElementById('editTextHint').textContent = translations[lang].editHint;
             document.getElementById('downloadBtn').textContent = translations[lang].download;
+            document.getElementById('downloadPdfBtn').textContent = translations[lang].downloadPdf;
             document.getElementById('emptyTitle').textContent = translations[lang].emptyTitle;
             document.getElementById('emptyUploadLabel').textContent = translations[lang].emptyUpload;
             const undoLabel = `${translations[lang].undo} (Ctrl+Z)`;
@@ -1621,43 +2040,144 @@
             if (tab) switchToPage(Number(tab.dataset.pageIndex));
         });
 
-        document.getElementById('imageModeBtn').addEventListener('click', () => {
-            switchWorkspaceMode('image');
-            document.getElementById('modeMenu').open = false;
-        });
-
         document.getElementById('uploadImageBtn').addEventListener('click', () => {
-            if (activeWorkspaceMode === 'pdf') switchWorkspaceMode('image');
             document.getElementById('modeMenu').open = false;
             document.getElementById('imageUpload').click();
         });
 
-        document.getElementById('pdfModeBtn').addEventListener('click', () => {
+        document.getElementById('uploadPdfBtn').addEventListener('click', () => {
             document.getElementById('modeMenu').open = false;
-            if (activeWorkspaceMode === 'image' && pdfWorkspaceState) {
-                switchWorkspaceMode('pdf');
-            } else {
-                document.getElementById('pdfUpload').click();
-            }
+            document.getElementById('pdfUpload').click();
         });
 
-        document.getElementById('pdfUpload').addEventListener('change', async event => {
+        async function loadPdfFile(file) {
+            const status = document.getElementById('ocrStatus');
+            status.textContent = translations[isArabic ? 'ar' : 'en'].pdfLoading;
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                const importedPages = [];
+                for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+                    const pdfPage = await pdf.getPage(pageNumber);
+                    const viewport = pdfPage.getViewport({ scale: 2 });
+                    const sourceCanvas = document.createElement('canvas');
+                    sourceCanvas.width = Math.ceil(viewport.width);
+                    sourceCanvas.height = Math.ceil(viewport.height);
+                    await pdfPage.render({
+                        canvasContext: sourceCanvas.getContext('2d'),
+                        viewport
+                    }).promise;
+                    importedPages.push({
+                        imageData: sourceCanvas.toDataURL('image/png'),
+                        width: sourceCanvas.width,
+                        height: sourceCanvas.height
+                    });
+                }
+
+                if (isCropMode) cancelCropMode();
+                pages = [];
+                activePageIndex = 0;
+                ocrWords = [];
+                ocrObjects = [];
+                ocrSourceCanvas = null;
+                ocrSourceContext = null;
+                currentImageData = null;
+                isRestoringCanvas = true;
+                canvas.isDrawingMode = false;
+
+                for (const importedPage of importedPages) {
+                    canvas.clear();
+                    canvas.setWidth(importedPage.width);
+                    canvas.setHeight(importedPage.height);
+                    await new Promise((resolve, reject) => {
+                        fabric.Image.fromURL(importedPage.imageData, image => {
+                            if (!image) {
+                                reject(new Error('PDF page image could not be loaded'));
+                                return;
+                            }
+                            canvas.setBackgroundImage(image, () => {
+                                const page = {
+                                    json: canvas.toJSON(['isOcrText', 'ocrCommitted', 'ocrWordData']),
+                                    width: importedPage.width,
+                                    height: importedPage.height,
+                                    imageData: importedPage.imageData,
+                                    imageScale: 1,
+                                    ocrWords: [],
+                                    ocrSourceData: importedPage.imageData,
+                                    rectangleMode: false,
+                                    drawingMode: false
+                                };
+                                pages.push(page);
+                                resolve();
+                            });
+                        });
+                    });
+                }
+                isRestoringCanvas = false;
+                restorePageAtIndex(0);
+                status.textContent = '';
+            } catch (error) {
+                isRestoringCanvas = false;
+                status.textContent = translations[isArabic ? 'ar' : 'en'].pdfError;
+                console.error('PDF import failed:', error);
+            }
+        }
+
+        document.getElementById('pdfUpload').addEventListener('change', event => {
             const file = event.target.files[0];
-            if (file) await importPdf(file);
+            if (file) loadPdfFile(file);
             event.target.value = '';
         });
 
-        document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
-        document.getElementById('recognizePdfBtn').addEventListener('click', () => {
-            if (activeWorkspaceMode !== 'pdf') return;
+        document.getElementById('addOverlayImageBtn').addEventListener('click', () => {
             document.getElementById('modeMenu').open = false;
-            document.getElementById('recognizeTextBtn').click();
+            document.getElementById('overlayImageUpload').click();
+        });
+
+        document.getElementById('overlayImageUpload').addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                fabric.Image.fromURL(reader.result, image => {
+                    if (!image) return;
+                    const maxWidth = canvas.getWidth() * 0.35;
+                    const maxHeight = canvas.getHeight() * 0.35;
+                    const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+                    image.set({
+                        left: (canvas.getWidth() - image.width * scale) / 2,
+                        top: (canvas.getHeight() - image.height * scale) / 2,
+                        scaleX: scale,
+                        scaleY: scale,
+                        cornerColor: '#087f72',
+                        cornerStrokeColor: '#ffffff',
+                        transparentCorners: false
+                    });
+                    image.name = file.name;
+                    canvas.add(image);
+                    canvas.setActiveObject(image);
+                    image.setCoords();
+                    canvas.requestRenderAll();
+                    fitCanvasToWorkspace();
+                    updateEmptyState();
+                    scheduleCanvasHistoryCapture();
+                });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
         });
 
         // رفع الصورة
         document.getElementById('imageUpload').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                loadPdfFile(file);
+                event.target.value = '';
+                return;
+            }
+            if (isCropMode) cancelCropMode();
             const reader = new FileReader();
 
             reader.onload = function(result) {
@@ -1673,10 +2193,10 @@
                     canvas.setHeight(image.height);
                     canvas.setBackgroundImage(image, () => {
                         saveActivePage();
-                        syncActiveWorkspaceState();
                         fitCanvasToWorkspace();
                         canvas.renderAll();
                         updateEmptyState();
+                        updateCropButtonState();
                         scheduleCanvasHistoryCapture();
                     }, { scaleX: imageScale, scaleY: imageScale });
                 });
@@ -1721,6 +2241,56 @@
                 document.head.appendChild(script);
             });
             return tesseractPromise;
+        }
+
+        async function loadTesseractWorker() {
+            if (!tesseractWorkerPromise) {
+                tesseractWorkerPromise = (async () => {
+                    const tesseract = await loadTesseract();
+                    const worker = await tesseract.createWorker('ara+eng', tesseract.OEM?.LSTM_ONLY ?? 1, {
+                        logger: progress => {
+                            if (progress.status === 'recognizing text') {
+                                const status = document.getElementById('ocrStatus');
+                                const lang = isArabic ? 'ar' : 'en';
+                                status.textContent = `${translations[lang].ocrProgress}${Math.round(progress.progress * 100)}%`;
+                            }
+                        }
+                    });
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: tesseract.PSM?.AUTO ?? 3,
+                        preserve_interword_spaces: '1'
+                    });
+                    return worker;
+                })().catch(error => {
+                    tesseractWorkerPromise = null;
+                    throw error;
+                });
+            }
+            return tesseractWorkerPromise;
+        }
+
+        async function prepareOcrImage(imageData) {
+            const image = new Image();
+            image.src = imageData;
+            await image.decode();
+
+            const sourceWidth = image.naturalWidth;
+            const sourceHeight = image.naturalHeight;
+            const longestSide = Math.max(sourceWidth, sourceHeight);
+            const scale = Math.min(2.6, 3200 / longestSide, Math.sqrt(8000000 / (sourceWidth * sourceHeight)));
+            const width = Math.max(1, Math.round(sourceWidth * scale));
+            const height = Math.max(1, Math.round(sourceHeight * scale));
+            const ocrCanvas = document.createElement('canvas');
+            ocrCanvas.width = width;
+            ocrCanvas.height = height;
+            const context = ocrCanvas.getContext('2d', { alpha: false });
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, width, height);
+            context.imageSmoothingEnabled = true;
+            context.imageSmoothingQuality = 'high';
+            context.filter = 'grayscale(1) contrast(1.15)';
+            context.drawImage(image, 0, 0, width, height);
+            return { imageData: ocrCanvas.toDataURL('image/png'), scale };
         }
 
         function sampleImageColor(context, x0, y0, x1, y1, sampleInside, backgroundColor) {
@@ -1903,14 +2473,11 @@
             button.disabled = true;
             status.textContent = translations[lang].ocrLoading;
             try {
-                const tesseract = await loadTesseract();
-                const result = await tesseract.recognize(currentImageData, 'ara+eng', {
-                    logger: progress => {
-                        if (progress.status === 'recognizing text') {
-                            status.textContent = `${translations[lang].ocrProgress}${Math.round(progress.progress * 100)}%`;
-                        }
-                    }
-                });
+                const [worker, ocrImage] = await Promise.all([
+                    loadTesseractWorker(),
+                    prepareOcrImage(currentImageData)
+                ]);
+                const result = await worker.recognize(ocrImage.imageData);
                 const sourceImage = new Image();
                 sourceImage.src = currentImageData;
                 await sourceImage.decode();
@@ -1925,14 +2492,20 @@
                 ocrWords = [];
                 const words = result.data.words.filter(word => word.text.trim() && word.bbox);
                 words.forEach(word => {
-                    const { x0, y0, x1, y1 } = word.bbox;
+                    const bounds = {
+                        x0: word.bbox.x0 / ocrImage.scale,
+                        y0: word.bbox.y0 / ocrImage.scale,
+                        x1: word.bbox.x1 / ocrImage.scale,
+                        y1: word.bbox.y1 / ocrImage.scale
+                    };
+                    const { x0, y0, x1, y1 } = bounds;
                     const boxWidth = x1 - x0;
                     const boxHeight = y1 - y0;
                     if (boxWidth <= 0 || boxHeight <= 0) return;
 
                     const background = sampleImageColor(ocrSourceContext, x0, y0, x1, y1, false);
                     const textStyle = estimateTextStyle(ocrSourceContext, x0, y0, x1, y1, background);
-                    ocrWords.push({ ...word, ...textStyle });
+                    ocrWords.push({ ...word, bbox: bounds, ...textStyle });
                 });
                 status.textContent = ocrWords.length ? translations[lang].ocrFound : translations[lang].ocrNone;
                 scheduleCanvasHistoryCapture();
@@ -1948,6 +2521,7 @@
         const drawBtn = document.getElementById('drawBtn');
         const brushSettings = document.getElementById('brushSettings');
         drawBtn.addEventListener('click', () => {
+            if (isCropMode) cancelCropMode();
             if (isRectMaskMode) {
                 isRectMaskMode = false;
                 canvas.skipTargetFind = false;
@@ -1972,6 +2546,7 @@
 
         const rectangleEraseBtn = document.getElementById('rectangleEraseBtn');
         rectangleEraseBtn.addEventListener('click', () => {
+            if (isCropMode) cancelCropMode();
             isRectMaskMode = !isRectMaskMode;
             canvas.isDrawingMode = false;
             canvas.skipTargetFind = isRectMaskMode;
@@ -2096,6 +2671,7 @@
         }
 
         function selectOcrPhrase(event) {
+            if (isCropMode) return;
             const activeObject = canvas.getActiveObject();
             const shouldRestoreWord = activeObject?.isOcrText && !activeObject.ocrCommitted;
             if (shouldRestoreWord && !ocrWords.includes(activeObject.ocrWordData)) {
@@ -2141,24 +2717,34 @@
 
         // تحديد محتوى النص كاملا بالنقر أو من زر التعديل.
         function editSelectedText(event, pointerOverride) {
+            if (isCropMode) return;
             if (event) canvas.calcOffset();
             let activeObject = canvas.getActiveObject();
             const target = event ? canvas.findTarget(event) : null;
-            if (event && activeObject?.isOcrText && !activeObject.ocrCommitted && target !== activeObject) {
-                canvas.remove(activeObject);
-                ocrObjects = ocrObjects.filter(object => object !== activeObject);
-                if (!ocrWords.includes(activeObject.ocrWordData)) ocrWords.push(activeObject.ocrWordData);
-                activeObject = null;
-            }
-            if (target instanceof fabric.IText) {
-                canvas.setActiveObject(target);
-                activeObject = target;
-            } else if (event || pointerOverride) {
-                const pointer = pointerOverride || canvas.getPointer(event);
-                const wordIndex = findOcrWordIndex(pointer);
-                if (wordIndex !== -1) {
-                    const [word] = ocrWords.splice(wordIndex, 1);
-                    activeObject = createOcrText(word);
+            const pointer = pointerOverride || (event ? canvas.getPointer(event) : null);
+            const wordIndex = pointer && !(target instanceof fabric.IText && !target.isOcrText)
+                ? findOcrWordIndex(pointer)
+                : -1;
+            const activeOcrText = activeObject instanceof fabric.IText && activeObject.isOcrText && !activeObject.ocrCommitted;
+
+            if (wordIndex !== -1) {
+                if (activeOcrText) {
+                    canvas.remove(activeObject);
+                    ocrObjects = ocrObjects.filter(object => object !== activeObject);
+                    if (!ocrWords.includes(activeObject.ocrWordData)) ocrWords.push(activeObject.ocrWordData);
+                }
+                const [word] = ocrWords.splice(wordIndex, 1);
+                activeObject = createOcrText(word);
+            } else {
+                if (event && activeOcrText && target !== activeObject) {
+                    canvas.remove(activeObject);
+                    ocrObjects = ocrObjects.filter(object => object !== activeObject);
+                    if (!ocrWords.includes(activeObject.ocrWordData)) ocrWords.push(activeObject.ocrWordData);
+                    activeObject = null;
+                }
+                if (target instanceof fabric.IText) {
+                    canvas.setActiveObject(target);
+                    activeObject = target;
                 }
             }
 
@@ -2172,6 +2758,10 @@
                     hint.classList.remove('hidden');
                 }
                 return;
+            }
+
+            if (isFormatPainterArmed && activeObject !== textStyleSource) {
+                applyCopiedTextFormat(activeObject);
             }
 
             const fontSelector = document.getElementById('fontFamilySelect');
@@ -2246,6 +2836,35 @@
             link.href = dataURL;
             link.download = 'edited_image.png';
             link.click();
+        });
+
+        document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
+            if (!pages.length || !window.jspdf?.jsPDF) return;
+            saveActivePage();
+            const { jsPDF } = window.jspdf;
+            const firstPage = pages[0];
+            const pdf = new jsPDF({
+                unit: 'px',
+                format: [firstPage.width, firstPage.height],
+                orientation: firstPage.width > firstPage.height ? 'landscape' : 'portrait',
+                compress: true
+            });
+
+            for (let index = 0; index < pages.length; index++) {
+                const page = pages[index];
+                if (index > 0) pdf.addPage([page.width, page.height]);
+                const pageCanvasElement = document.createElement('canvas');
+                const pageCanvas = new fabric.StaticCanvas(pageCanvasElement, {
+                    width: page.width,
+                    height: page.height,
+                    enableRetinaScaling: false
+                });
+                await new Promise(resolve => pageCanvas.loadFromJSON(page.json, resolve));
+                pageCanvas.renderAll();
+                pdf.addImage(pageCanvas.toDataURL({ format: 'png' }), 'PNG', 0, 0, page.width, page.height);
+                pageCanvas.dispose();
+            }
+            pdf.save('edited_document.pdf');
         });
     </script>
 </body>
